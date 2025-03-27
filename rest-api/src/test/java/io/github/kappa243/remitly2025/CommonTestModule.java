@@ -1,0 +1,51 @@
+package io.github.kappa243.remitly2025;
+
+import io.restassured.RestAssured;
+import org.junit.jupiter.api.BeforeEach;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.utility.DockerImageName;
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+public abstract class CommonTestModule {
+    
+    @LocalServerPort
+    int port;
+    
+    String URI = "http://localhost";
+    String PATH = "/v1/swift-codes";
+    
+    @Container
+    public static final GenericContainer mongoDBContainer = new GenericContainer(DockerImageName.parse("mongodb/mongodb-community-server:7.0-ubuntu2204"))
+        .withEnv("MONGO_INITDB_ROOT_USERNAME", "user")
+        .withEnv("MONGO_INITDB_ROOT_PASSWORD", "password")
+        .withEnv("MONGO_INITDB_DATABASE", "swift")
+        .withExposedPorts(27017);
+    
+    static {
+        mongoDBContainer.start();
+    }
+    
+    @DynamicPropertySource
+    static void mongoProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.data.mongodb.host", mongoDBContainer::getHost);
+        registry.add("spring.data.mongodb.port", mongoDBContainer::getFirstMappedPort);
+        registry.add("spring.data.mongodb.username", () -> "user");
+        registry.add("spring.data.mongodb.password", () -> "password");
+        registry.add("spring.data.mongodb.database", () -> "swift");
+        registry.add("spring.data.mongodb.authentication-database", () -> "admin");
+    }
+    
+    @BeforeEach
+    public void setupRestAssured() {
+        RestAssured.baseURI = URI;
+        RestAssured.basePath = PATH;
+        RestAssured.port = port;
+    }
+    
+    
+}
