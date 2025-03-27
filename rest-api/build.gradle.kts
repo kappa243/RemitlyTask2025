@@ -31,6 +31,9 @@ dependencies {
 
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6")
 
+	implementation("com.opencsv:opencsv:5.10")
+
+
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")
 

@@ -2,31 +2,35 @@ package io.github.kappa243.remitly2025;
 
 import io.github.kappa243.remitly2025.model.BankItem;
 import io.github.kappa243.remitly2025.model.CountryItem;
+import io.github.kappa243.remitly2025.parser.BankCSVParser;
 import io.github.kappa243.remitly2025.repositories.BanksRepository;
 import io.github.kappa243.remitly2025.repositories.CountriesRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.SmartInitializingSingleton;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.index.Index;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
-public class InitParser implements SmartInitializingSingleton {
+@Slf4j
+public class DatabaseInitializer implements CommandLineRunner {
     
     private final BanksRepository banksRepository;
     private final CountriesRepository countriesRepository;
     
     private final MongoTemplate mongoTemplate;
     
-    @Override
-    @Transactional
-    public void afterSingletonsInstantiated() {
-        
+    private final BankCSVParser bankCSVParser;
+    
+    private void internalTest() {
         if (mongoTemplate.collectionExists(BankItem.class) || mongoTemplate.collectionExists(CountryItem.class)) {
             // clear all data
             mongoTemplate.dropCollection(BankItem.class);
@@ -46,7 +50,26 @@ public class InitParser implements SmartInitializingSingleton {
         banksRepository.save(bank_child_a);
         banksRepository.save(bank_child_b);
         banksRepository.save(bank_head);
-        
     }
     
+    @Override
+    public void run(String... args) {
+//        internalTest();
+        
+        Pair<Set<CountryItem>, Set<BankItem>> entries = null;
+        try {
+            entries = bankCSVParser.parseCSV();
+            
+        } catch (IOException e) {
+            log.error("Error while parsing CSV banks data", e);
+        } catch (RuntimeException e) {
+            // if openCSV throws runtime this is only moment we can catch it before application crash
+            log.error("Something went wrong during CSV parsing", e);
+        }
+        
+        if (entries != null) {
+            countriesRepository.saveAll(entries.getFirst());
+            banksRepository.saveAll(entries.getSecond());
+        }
+    }
 }
