@@ -28,6 +28,6 @@ public class BankCSVEntry {
     private String countryName;
     
     @JsonProperty("COUNTRY ISO2 CODE")
-    private String countryCode;
+    private String countryISO2;
     
 }

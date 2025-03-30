@@ -1,8 +1,10 @@
 package io.github.kappa243.remitly2025.services;
 
 import io.github.kappa243.remitly2025.controllers.BankResponse;
+import io.github.kappa243.remitly2025.controllers.CountryBanksResponse;
 import io.github.kappa243.remitly2025.exceptions.BankAlreadyExistsException;
 import io.github.kappa243.remitly2025.exceptions.BankNotFoundException;
+import io.github.kappa243.remitly2025.exceptions.CountryNotExistsException;
 import io.github.kappa243.remitly2025.exceptions.HeadBankNotFoundException;
 import io.github.kappa243.remitly2025.model.BankItem;
 import io.github.kappa243.remitly2025.model.CountryItem;
@@ -29,9 +31,8 @@ public class SwiftCodesServiceImpl implements SwiftCodesService {
     public BankResponse getBankBySwiftCode(String swiftCode) throws BankNotFoundException {
         Optional<BankResponse> response = banksRepository.findBySwiftCode(swiftCode);
         
-        if (response.isEmpty()) {
+        if (response.isEmpty())
             throw new BankNotFoundException();
-        }
         
         return response.get();
     }
@@ -41,16 +42,15 @@ public class SwiftCodesServiceImpl implements SwiftCodesService {
         // check if bank already exists
         Optional<BankItem> existingBank = banksRepository.findById(bank.getSwiftCode());
         
-        if (existingBank.isPresent()) {
+        if (existingBank.isPresent())
             throw new BankAlreadyExistsException();
-        }
         
         // check if country exists
-        Optional<CountryItem> country = countriesRepository.findById(bank.getCountryCode().getCountryCode());
+        Optional<CountryItem> country = countriesRepository.findById(bank.getCountryISO2().getCountryISO2());
         
-        if (country.isEmpty()) {
-            countriesRepository.save(bank.getCountryCode());
-        }
+        if (country.isEmpty())
+            countriesRepository.save(bank.getCountryISO2());
+        
         // country requirements were not provided in task;
         // we assume that country code is unique and is final after creation (dict)
         
@@ -78,4 +78,27 @@ public class SwiftCodesServiceImpl implements SwiftCodesService {
         
         return projectionFactory.createProjection(BankResponse.class, createdBank);
     }
+    
+    
+    private CountryItem getCountryByCountryISO2(String countryISO2) throws CountryNotExistsException {
+        Optional<CountryItem> countryItem = countriesRepository.findById(countryISO2);
+        
+        if (countryItem.isEmpty())
+            throw new CountryNotExistsException();
+        
+        return countryItem.get();
+    }
+    
+    @Override
+    public CountryBanksResponse getBanksByCountryISO2(String countryISO2) throws CountryNotExistsException {
+        CountryItem countryItem = getCountryByCountryISO2(countryISO2);
+        
+        return CountryBanksResponse.builder()
+            .countryISO2(countryItem.getCountryISO2())
+            .countryName(countryItem.getCountryName())
+            .swiftCodes(banksRepository.findAllByCountryISO2_CountryISO2(countryItem.getCountryISO2()))
+            .build();
+    }
+    
+    
 }

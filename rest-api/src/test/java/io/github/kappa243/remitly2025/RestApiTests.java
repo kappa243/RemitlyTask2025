@@ -44,7 +44,7 @@ public class RestApiTests extends BaseTestModule {
             mongoTemplate.dropCollection(BankItem.class);
             mongoTemplate.dropCollection(CountryItem.class);
             
-            mongoTemplate.indexOps(BankItem.class).ensureIndex(new Index().on("countryCode", Sort.Direction.ASC).named("countryCode_"));
+            mongoTemplate.indexOps(BankItem.class).ensureIndex(new Index().on("countryISO2", Sort.Direction.ASC).named("countryISO2_"));
         }
         
         var country_pl = new CountryItem("PL", "POLAND");
@@ -70,7 +70,7 @@ public class RestApiTests extends BaseTestModule {
         .swiftCode("ABCDEFGHXXX")
         .name("MAIN STREET BANK")
         .address("1234 Main St")
-        .countryCode(countryPL)
+        .countryISO2(countryPL)
         .headquarter(true)
         .branches(new ArrayList<>())
         .build();
@@ -79,7 +79,7 @@ public class RestApiTests extends BaseTestModule {
         .swiftCode(bankItem.getSwiftCode())
         .name(bankItem.getName())
         .address(bankItem.getAddress())
-        .countryCode(countryPL.getCountryCode())
+        .countryISO2(countryPL.getCountryISO2())
         .countryName(countryPL.getCountryName())
         .headquarter(bankItem.isHeadquarter())
         .build();
@@ -96,7 +96,7 @@ public class RestApiTests extends BaseTestModule {
             .body("swiftCode", is(headSwiftCode))
             .body("name", is("MBANK S.A. (FORMERLY BRE BANK S.A.)"))
             .body("address", is("UL. PROSTA 18  WARSZAWA, MAZOWIECKIE, 00-850"))
-            .body("countryCode", is("PL"))
+            .body("countryISO2", is("PL"))
             .body("countryName", is("POLAND"))
             .body("isHeadquarter", is(true))
             .body("branches.swiftCode", hasItem(branchSwiftCode));
@@ -161,7 +161,7 @@ public class RestApiTests extends BaseTestModule {
             .body("swiftCode", is(bankRequest.getSwiftCode()))
             .body("name", is(bankRequest.getName()))
             .body("address", is(bankRequest.getAddress()))
-            .body("countryCode", is(bankRequest.getCountryCode()))
+            .body("countryISO2", is(bankRequest.getCountryISO2()))
             .body("countryName", is(bankRequest.getCountryName()))
             .body("isHeadquarter", is(true));
     }
@@ -222,5 +222,28 @@ public class RestApiTests extends BaseTestModule {
             .then()
             .statusCode(409)
             .body(containsString("Bank already exists"));
+    }
+    
+    @Test
+    public void whenGetBanksByCountryISO2_thenOk() {
+        String countryISO2 = "PL";
+        
+        when()
+            .get("/country/{countryISO2}", countryISO2)
+            .then()
+            .statusCode(200)
+            .body("swiftCodes.swiftCode", hasItem(headSwiftCode))
+            .body("swiftCodes.swiftCode", hasItem(branchSwiftCode));
+    }
+    
+    @Test
+    public void whenGetBanksByCountryISO2AndCountryDoesNotExists_thenNotFound() {
+        String countryISO2 = "QQ";
+        
+        when()
+            .get("/country/{countryISO2}", countryISO2)
+            .then()
+            .statusCode(404)
+            .body(containsString("Country does not exists"));
     }
 }

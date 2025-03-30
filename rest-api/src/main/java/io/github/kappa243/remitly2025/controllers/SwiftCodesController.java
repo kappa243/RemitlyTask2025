@@ -2,9 +2,11 @@ package io.github.kappa243.remitly2025.controllers;
 
 import io.github.kappa243.remitly2025.exceptions.BankAlreadyExistsException;
 import io.github.kappa243.remitly2025.exceptions.BankNotFoundException;
+import io.github.kappa243.remitly2025.exceptions.CountryNotExistsException;
 import io.github.kappa243.remitly2025.exceptions.HeadBankNotFoundException;
 import io.github.kappa243.remitly2025.model.BankItem;
 import io.github.kappa243.remitly2025.model.CountryItem;
+import io.github.kappa243.remitly2025.model.validators.CountryCode;
 import io.github.kappa243.remitly2025.model.validators.SwiftCode;
 import io.github.kappa243.remitly2025.services.SwiftCodesService;
 import jakarta.validation.Valid;
@@ -38,12 +40,19 @@ public class SwiftCodesController {
         return swiftCodesService.getBankBySwiftCode(swiftCode);
     }
     
+    @GetMapping("/country/{countryISO2code}")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public CountryBanksResponse getBanksByCountryISO2(@PathVariable @CountryCode String countryISO2code) throws CountryNotExistsException {
+        return swiftCodesService.getBanksByCountryISO2(countryISO2code);
+    }
+    
     @PostMapping("/")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<Map<String, String>> addBank(@Valid @RequestBody BankRequest bankRequest) throws HeadBankNotFoundException, BankAlreadyExistsException {
         // map request to items
         CountryItem countryItem = CountryItem.builder()
-            .countryCode(bankRequest.getCountryCode())
+            .countryISO2(bankRequest.getCountryISO2())
             .countryName(bankRequest.getCountryName())
             .build();
         
@@ -52,7 +61,7 @@ public class SwiftCodesController {
             .name(bankRequest.getName())
             .address(bankRequest.getAddress())
             .headquarter(bankRequest.isHeadquarter())
-            .countryCode(countryItem)
+            .countryISO2(countryItem)
             .build();
         
         swiftCodesService.addBank(bankItem);

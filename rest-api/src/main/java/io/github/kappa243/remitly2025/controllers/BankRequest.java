@@ -36,7 +36,7 @@ public class BankRequest {
     
     @NotEmpty
     @CountryCode
-    private String countryCode;
+    private String countryISO2;
     
     @NotEmpty
     @Uppercase

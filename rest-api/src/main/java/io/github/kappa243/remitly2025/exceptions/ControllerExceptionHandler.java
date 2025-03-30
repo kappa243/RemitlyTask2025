@@ -36,6 +36,12 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>("Headquarter bank does not exists.", HttpStatus.CONFLICT);
     }
     
+    @ExceptionHandler(CountryNotExistsException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseEntity<String> handleCountryNotExists(CountryNotExistsException e, WebRequest wr) {
+        return new ResponseEntity<>("Country does not exists", HttpStatus.NOT_FOUND);
+    }
+    
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     ResponseEntity<String> handleConstraintViolationException(ConstraintViolationException e) {

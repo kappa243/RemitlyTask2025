@@ -46,17 +46,17 @@ public class BankItem {
     @DBRef
     @Indexed
     @NotEmpty
-    private CountryItem countryCode;
+    private CountryItem countryISO2;
     
     @DBRef
     @Setter
     private List<BankItem> branches;
     
-    public BankItem(String swiftCode, String name, String address, boolean headquarter, CountryItem countryCode) {
+    public BankItem(String swiftCode, String name, String address, boolean headquarter, CountryItem countryISO2) {
         this.swiftCode = swiftCode;
         this.name = name;
         this.address = address;
         this.headquarter = headquarter;
-        this.countryCode = countryCode;
+        this.countryISO2 = countryISO2;
     }
 }

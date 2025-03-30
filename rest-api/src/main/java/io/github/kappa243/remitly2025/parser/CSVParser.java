@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -25,9 +24,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public class CSVParser {
     
-    private Pair<CountryItem, BankItem> mapEntry(BankCSVEntry entry){
+    private Pair<CountryItem, BankItem> mapEntry(BankCSVEntry entry) {
         CountryItem countryItem = CountryItem.builder()
-            .countryCode(entry.getCountryCode())
+            .countryISO2(entry.getCountryISO2())
             .countryName(entry.getCountryName())
             .build();
         
@@ -35,7 +34,7 @@ public class CSVParser {
             .swiftCode(entry.getSwiftCode())
             .name(entry.getName().trim().toUpperCase())
             .address(entry.getAddress().trim().toUpperCase())
-            .countryCode(countryItem)
+            .countryISO2(countryItem)
             .build();
         
         return Pair.of(countryItem, bankItem);
@@ -62,7 +61,7 @@ public class CSVParser {
             .readValues(csvResource.getInputStream())) {
             
             Map<Boolean, List<BankCSVEntry>> partitioned = iter.readAll().stream()
-                    .collect(Collectors.partitioningBy(entry -> entry.getSwiftCode().endsWith("XXX")));
+                .collect(Collectors.partitioningBy(entry -> entry.getSwiftCode().endsWith("XXX")));
             
             List<BankCSVEntry> headEntries = partitioned.get(true);
             List<BankCSVEntry> branchEntries = partitioned.get(false);

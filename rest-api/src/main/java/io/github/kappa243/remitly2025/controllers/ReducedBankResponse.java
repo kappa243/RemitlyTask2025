@@ -17,7 +17,7 @@ public interface ReducedBankResponse {
     @JsonProperty("isHeadquarter")
     boolean getHeadquarter();
     
-    @Value("#{target.countryCode.getCountryCode()}")
-    String getCountryCode();
+    @Value("#{target.countryISO2.getCountryISO2()}")
+    String getCountryISO2();
     
 }

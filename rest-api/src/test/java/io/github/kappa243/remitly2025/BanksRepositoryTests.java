@@ -2,6 +2,7 @@ package io.github.kappa243.remitly2025;
 
 
 import io.github.kappa243.remitly2025.controllers.BankResponse;
+import io.github.kappa243.remitly2025.controllers.ReducedBankResponse;
 import io.github.kappa243.remitly2025.model.BankItem;
 import io.github.kappa243.remitly2025.model.CountryItem;
 import io.github.kappa243.remitly2025.repositories.BanksRepository;
@@ -17,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class BanksRepositoryTests extends BaseTestModule {
     
@@ -37,7 +38,7 @@ public class BanksRepositoryTests extends BaseTestModule {
             mongoTemplate.dropCollection(BankItem.class);
             mongoTemplate.dropCollection(CountryItem.class);
             
-            mongoTemplate.indexOps(BankItem.class).ensureIndex(new Index().on("countryCode", Sort.Direction.ASC).named("countryCode_"));
+            mongoTemplate.indexOps(BankItem.class).ensureIndex(new Index().on("countryISO2", Sort.Direction.ASC).named("countryISO2_"));
         }
         
         var country_pl = new CountryItem("PL", "POLAND");
@@ -60,7 +61,7 @@ public class BanksRepositoryTests extends BaseTestModule {
         .swiftCode("ABCDEFGHXXX")
         .name("Main Street Bank")
         .address("1234 Main St")
-        .countryCode(countryPL)
+        .countryISO2(countryPL)
         .headquarter(true)
         .branches(new ArrayList<>())
         .build();
@@ -90,8 +91,8 @@ public class BanksRepositoryTests extends BaseTestModule {
         
         BankResponse resBankItem = bank.get();
         assertThat(resBankItem.getSwiftCode()).isEqualTo(bankItem.getSwiftCode());
-        assertThat(resBankItem.getCountryCode()).isEqualTo(bankItem.getCountryCode().getCountryCode());
-        assertThat(resBankItem.getCountryName()).isEqualTo(bankItem.getCountryCode().getCountryName());
+        assertThat(resBankItem.getCountryISO2()).isEqualTo(bankItem.getCountryISO2().getCountryISO2());
+        assertThat(resBankItem.getCountryName()).isEqualTo(bankItem.getCountryISO2().getCountryName());
         assertThat(resBankItem.getName()).isEqualTo(bankItem.getName());
         assertThat(resBankItem.getAddress()).isEqualTo(bankItem.getAddress());
         assertThat(resBankItem.getHeadquarter()).isEqualTo(bankItem.isHeadquarter());
@@ -111,7 +112,7 @@ public class BanksRepositoryTests extends BaseTestModule {
             .swiftCode("ABCDEFGHABC")
             .name("Main Street Bank")
             .address("3333 Side St")
-            .countryCode(countryPL)
+            .countryISO2(countryPL)
             .headquarter(false)
             .build();
         
@@ -130,6 +131,15 @@ public class BanksRepositoryTests extends BaseTestModule {
         
         assertThat(resHeadBank.getBranches().size()).isEqualTo(1);
         assertThat(resHeadBank.getBranches().get(0).getSwiftCode()).isEqualTo(branch.getSwiftCode());
+    }
+    
+    @Test
+    public void whenFindBanksByCountryISO2_thenReturnReducedBankResponses() {
+        List<ReducedBankResponse> banks = banksRepository.findAllByCountryISO2_CountryISO2(countryPL.getCountryISO2());
+        
+        assertThat(banks).isNotEmpty();
+        assertThat(banks.size()).isEqualTo(3);
+        assertThat(banks).allSatisfy(bank -> assertThat(bank.getCountryISO2()).isEqualTo(countryPL.getCountryISO2()));
     }
     
     @Test

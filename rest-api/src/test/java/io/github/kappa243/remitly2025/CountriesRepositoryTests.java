@@ -12,7 +12,7 @@ import org.springframework.data.mongodb.core.index.Index;
 
 import java.util.Optional;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class CountriesRepositoryTests extends BaseTestModule {
     
@@ -31,7 +31,7 @@ public class CountriesRepositoryTests extends BaseTestModule {
             mongoTemplate.dropCollection(BankItem.class);
             mongoTemplate.dropCollection(CountryItem.class);
             
-            mongoTemplate.indexOps(BankItem.class).ensureIndex(new Index().on("countryCode", Sort.Direction.ASC).named("countryCode_"));
+            mongoTemplate.indexOps(BankItem.class).ensureIndex(new Index().on("countryISO2", Sort.Direction.ASC).named("countryISO2_"));
         }
         
         countriesRepository.save(countryPL);
@@ -41,9 +41,9 @@ public class CountriesRepositoryTests extends BaseTestModule {
     public void whenSaveCountry_thenCountryExists() {
         countriesRepository.save(countryPL);
         
-        Optional<CountryItem> foundCountry = countriesRepository.findById(countryPL.getCountryCode());
+        Optional<CountryItem> foundCountry = countriesRepository.findById(countryPL.getCountryISO2());
         assertThat(foundCountry).isPresent();
-        assertThat(foundCountry.get().getCountryCode()).isEqualTo(countryPL.getCountryCode());
+        assertThat(foundCountry.get().getCountryISO2()).isEqualTo(countryPL.getCountryISO2());
         assertThat(foundCountry.get().getCountryName()).isEqualTo(countryPL.getCountryName());
     }
     
@@ -59,7 +59,7 @@ public class CountriesRepositoryTests extends BaseTestModule {
         
         countriesRepository.delete(countryPL);
         
-        Optional<CountryItem> foundCountry = countriesRepository.findById(countryPL.getCountryCode());
+        Optional<CountryItem> foundCountry = countriesRepository.findById(countryPL.getCountryISO2());
         assertThat(foundCountry).isEmpty();
     }
     

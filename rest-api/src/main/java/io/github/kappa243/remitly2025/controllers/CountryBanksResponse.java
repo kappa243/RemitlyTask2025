@@ -1,31 +1,28 @@
-package io.github.kappa243.remitly2025.model;
+package io.github.kappa243.remitly2025.controllers;
 
 import io.github.kappa243.remitly2025.model.validators.CountryCode;
-import io.github.kappa243.remitly2025.model.validators.Uppercase;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.List;
 
-@Document(collection = "countries")
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode
 @Builder
-public class CountryItem {
+public class CountryBanksResponse {
     
-    @Id
+    @NotEmpty
     @CountryCode
     private String countryISO2;
     
     @NotEmpty
-    @Uppercase
     private String countryName;
     
+    @NotNull
+    private List<ReducedBankResponse> swiftCodes;
 }

@@ -3,17 +3,17 @@ package io.github.kappa243.remitly2025;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.kappa243.remitly2025.controllers.BankRequest;
 import io.github.kappa243.remitly2025.controllers.BankResponse;
+import io.github.kappa243.remitly2025.controllers.CountryBanksResponse;
 import io.github.kappa243.remitly2025.controllers.SwiftCodesController;
 import io.github.kappa243.remitly2025.exceptions.BankAlreadyExistsException;
 import io.github.kappa243.remitly2025.exceptions.BankNotFoundException;
+import io.github.kappa243.remitly2025.exceptions.CountryNotExistsException;
 import io.github.kappa243.remitly2025.exceptions.HeadBankNotFoundException;
 import io.github.kappa243.remitly2025.model.BankItem;
 import io.github.kappa243.remitly2025.model.CountryItem;
 import io.github.kappa243.remitly2025.services.SwiftCodesService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -21,6 +21,8 @@ import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Mockito.when;
@@ -33,7 +35,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import({ProjectionConfig.class})
 public class SwiftCodesControllerTests {
     
-    private static final Logger log = LoggerFactory.getLogger(SwiftCodesControllerTests.class);
     String URI = "http://localhost";
     String PATH = "/v1/swift-codes";
     
@@ -54,7 +55,7 @@ public class SwiftCodesControllerTests {
         .swiftCode("ABCDEFGHXXX")
         .name("MAIN STREET BANK")
         .address("1234 Main St")
-        .countryCode(countryPL)
+        .countryISO2(countryPL)
         .headquarter(true)
         .build();
     
@@ -62,7 +63,7 @@ public class SwiftCodesControllerTests {
         .swiftCode(bankItem.getSwiftCode())
         .name(bankItem.getName())
         .address(bankItem.getAddress())
-        .countryCode(countryPL.getCountryCode())
+        .countryISO2(countryPL.getCountryISO2())
         .countryName(countryPL.getCountryName())
         .headquarter(bankItem.isHeadquarter())
         .build();
@@ -185,4 +186,29 @@ public class SwiftCodesControllerTests {
             .andExpect(status().isConflict());
     }
     
+    @Test
+    public void whenGetBanksByCountryISO2_thenOk() throws Exception {
+        String countryISO2 = countryPL.getCountryISO2();
+        
+        CountryBanksResponse countryBanksResponse = CountryBanksResponse.builder()
+            .countryISO2(countryISO2)
+            .countryName(countryPL.getCountryName())
+            .swiftCodes(List.of(bankResponse))
+            .build();
+        
+        when(swiftCodesService.getBanksByCountryISO2(countryISO2)).thenReturn(countryBanksResponse);
+        
+        mockMvc.perform(get(PATH + "/country/{countryISO2code}", countryISO2))
+            .andExpect(status().isOk())
+            .andExpect(content().json(objectMapper.writeValueAsString(countryBanksResponse)));
+    }
+    
+    @Test
+    public void whenGetBanksByCountryISO2AndCountryDoesNotExists_thenNotFound() throws Exception {
+        String countryISO2 = "PL";
+        when(swiftCodesService.getBanksByCountryISO2(countryISO2)).thenThrow(new CountryNotExistsException());
+        
+        mockMvc.perform(get(PATH + "/country/{countryISO2code}", countryISO2))
+            .andExpect(status().isNotFound());
+    }
 }
