@@ -246,4 +246,36 @@ public class RestApiTests extends BaseTestModule {
             .statusCode(404)
             .body(containsString("Country does not exists"));
     }
+    
+    @Test
+    public void whenDeleteBank_thenOk() {
+        when()
+            .delete("/{swiftCode}", branchSwiftCode)
+            .then()
+            .statusCode(200);
+        
+        when()
+            .get("/{swiftCode}", branchSwiftCode)
+            .then()
+            .statusCode(404);
+    }
+    
+    @Test
+    public void whenDeleteBankAndDoesNotExists_thenNotFound() {
+        String swiftCode = "ABCDEFGHIJK";
+        
+        when()
+            .delete("/{swiftCode}", swiftCode)
+            .then()
+            .statusCode(404);
+    }
+    
+    @Test
+    public void whenDeleteHeadBankAndHasBranches_thenConflict() {
+        when()
+            .delete("/{swiftCode}", headSwiftCode)
+            .then()
+            .statusCode(409)
+            .body(containsString("Child branches found"));
+    }
 }

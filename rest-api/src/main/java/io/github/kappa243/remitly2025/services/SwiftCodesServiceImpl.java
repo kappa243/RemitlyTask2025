@@ -4,6 +4,7 @@ import io.github.kappa243.remitly2025.controllers.BankResponse;
 import io.github.kappa243.remitly2025.controllers.CountryBanksResponse;
 import io.github.kappa243.remitly2025.exceptions.BankAlreadyExistsException;
 import io.github.kappa243.remitly2025.exceptions.BankNotFoundException;
+import io.github.kappa243.remitly2025.exceptions.ChildBranchesFoundException;
 import io.github.kappa243.remitly2025.exceptions.CountryNotExistsException;
 import io.github.kappa243.remitly2025.exceptions.HeadBankNotFoundException;
 import io.github.kappa243.remitly2025.model.BankItem;
@@ -100,5 +101,20 @@ public class SwiftCodesServiceImpl implements SwiftCodesService {
             .build();
     }
     
+    @Override
+    public void deleteBank(String swiftCode) throws BankNotFoundException, ChildBranchesFoundException {
+        Optional<BankItem> bank = banksRepository.findById(swiftCode);
+        
+        if (bank.isEmpty())
+            throw new BankNotFoundException();
+        
+        BankItem bankItem = bank.get();
+        
+        if (bankItem.isHeadquarter() && !bankItem.getBranches().isEmpty()) {
+            throw new ChildBranchesFoundException();
+        }
+        
+        banksRepository.delete(bank.get());
+    }
     
 }

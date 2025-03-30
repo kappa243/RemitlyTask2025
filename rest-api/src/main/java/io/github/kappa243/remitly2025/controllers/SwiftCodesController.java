@@ -2,6 +2,7 @@ package io.github.kappa243.remitly2025.controllers;
 
 import io.github.kappa243.remitly2025.exceptions.BankAlreadyExistsException;
 import io.github.kappa243.remitly2025.exceptions.BankNotFoundException;
+import io.github.kappa243.remitly2025.exceptions.ChildBranchesFoundException;
 import io.github.kappa243.remitly2025.exceptions.CountryNotExistsException;
 import io.github.kappa243.remitly2025.exceptions.HeadBankNotFoundException;
 import io.github.kappa243.remitly2025.model.BankItem;
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -67,6 +69,15 @@ public class SwiftCodesController {
         swiftCodesService.addBank(bankItem);
         
         return ResponseEntity.status(HttpStatus.CREATED)
+            .body(Map.of("message", "ok"));
+    }
+    
+    @DeleteMapping("/{swiftCode}")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<Map<String, String>> deleteBank(@PathVariable @SwiftCode String swiftCode) throws BankNotFoundException, ChildBranchesFoundException {
+        swiftCodesService.deleteBank(swiftCode);
+        
+        return ResponseEntity.status(HttpStatus.OK)
             .body(Map.of("message", "ok"));
     }
     

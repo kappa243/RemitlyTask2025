@@ -7,6 +7,7 @@ import io.github.kappa243.remitly2025.controllers.CountryBanksResponse;
 import io.github.kappa243.remitly2025.controllers.SwiftCodesController;
 import io.github.kappa243.remitly2025.exceptions.BankAlreadyExistsException;
 import io.github.kappa243.remitly2025.exceptions.BankNotFoundException;
+import io.github.kappa243.remitly2025.exceptions.ChildBranchesFoundException;
 import io.github.kappa243.remitly2025.exceptions.CountryNotExistsException;
 import io.github.kappa243.remitly2025.exceptions.HeadBankNotFoundException;
 import io.github.kappa243.remitly2025.model.BankItem;
@@ -25,7 +26,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -210,5 +214,31 @@ public class SwiftCodesControllerTests {
         
         mockMvc.perform(get(PATH + "/country/{countryISO2code}", countryISO2))
             .andExpect(status().isNotFound());
+    }
+    
+    @Test
+    public void whenDeleteBank_thenOk() throws Exception {
+        String swiftCode = bankItem.getSwiftCode();
+        
+        mockMvc.perform(delete(PATH + "/{swiftCode}", swiftCode))
+            .andExpect(status().isOk());
+    }
+    
+    @Test
+    public void whenDeleteBankAndBankDoesNotExists_thenNotFound() throws Exception {
+        String swiftCode = "ABCDEFGHIJK";
+        doThrow(new BankNotFoundException()).when(swiftCodesService).deleteBank(swiftCode);
+        
+        mockMvc.perform(delete(PATH + "/{swiftCode}", swiftCode))
+            .andExpect(status().isNotFound());
+    }
+    
+    @Test
+    public void whenDeleteBankAndChildBranchesFound_thenConflict() throws Exception {
+        String swiftCode = bankItem.getSwiftCode();
+        doThrow(new ChildBranchesFoundException()).when(swiftCodesService).deleteBank(swiftCode);
+        
+        mockMvc.perform(delete(PATH + "/{swiftCode}", swiftCode))
+            .andExpect(status().isConflict());
     }
 }

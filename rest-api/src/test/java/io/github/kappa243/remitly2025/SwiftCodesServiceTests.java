@@ -4,6 +4,7 @@ import io.github.kappa243.remitly2025.controllers.BankResponse;
 import io.github.kappa243.remitly2025.controllers.CountryBanksResponse;
 import io.github.kappa243.remitly2025.exceptions.BankAlreadyExistsException;
 import io.github.kappa243.remitly2025.exceptions.BankNotFoundException;
+import io.github.kappa243.remitly2025.exceptions.ChildBranchesFoundException;
 import io.github.kappa243.remitly2025.exceptions.CountryNotExistsException;
 import io.github.kappa243.remitly2025.exceptions.HeadBankNotFoundException;
 import io.github.kappa243.remitly2025.model.BankItem;
@@ -149,5 +150,35 @@ public class SwiftCodesServiceTests extends BaseTestModule {
         
         assertThatThrownBy(() -> swiftCodesService.getBanksByCountryISO2(countryPL.getCountryISO2()))
             .isInstanceOf(CountryNotExistsException.class);
+    }
+    
+    @Test
+    public void whenDeleteBankAndBankExists_thenDeleteBank() {
+        when(banksRepository.findById(bankItem.getSwiftCode())).thenReturn(Optional.of(bankItem));
+        
+        assertThatCode(() -> swiftCodesService.deleteBank(bankItem.getSwiftCode())).doesNotThrowAnyException();
+    }
+    
+    @Test
+    public void whenDeleteBankAndBankDoesNotExists_thenThrowBankNotFoundException() {
+        when(banksRepository.findById(bankItem.getSwiftCode())).thenReturn(Optional.empty());
+        
+        assertThatThrownBy(() -> swiftCodesService.deleteBank(bankItem.getSwiftCode()))
+            .isInstanceOf(BankNotFoundException.class);
+    }
+    
+    @Test
+    public void whenDeleteBankAndBankHasBranches_thenThrowChildBranchesFoundException() {
+        BankItem branch = bankItem.toBuilder()
+            .swiftCode("ABCDEFGHABC")
+            .headquarter(false)
+            .build();
+        
+        bankItem.getBranches().add(branch);
+        
+        when(banksRepository.findById(bankItem.getSwiftCode())).thenReturn(Optional.of(bankItem));
+        
+        assertThatThrownBy(() -> swiftCodesService.deleteBank(bankItem.getSwiftCode()))
+            .isInstanceOf(ChildBranchesFoundException.class);
     }
 }

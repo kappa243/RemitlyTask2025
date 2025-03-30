@@ -42,6 +42,12 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>("Country does not exists", HttpStatus.NOT_FOUND);
     }
     
+    @ExceptionHandler(ChildBranchesFoundException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ResponseEntity<String> handleChildBranchesFound(ChildBranchesFoundException e, WebRequest wr) {
+        return new ResponseEntity<>("Child branches found for given headquarter", HttpStatus.CONFLICT);
+    }
+    
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     ResponseEntity<String> handleConstraintViolationException(ConstraintViolationException e) {
