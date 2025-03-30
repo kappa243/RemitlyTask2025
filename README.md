@@ -56,3 +56,12 @@ cd rest-api
 ./gradlew test
 ```
 
+## Additional info
+
+Some aspects have been implemented based on assumptions, as they were not explicitly stated in the task description.
+
+The API is designed to:
+- prevent adding child branch SWIFT codes until the parent branch SWIFT code has been added.
+- prevent deleting parent branch SWIFT codes if child branch SWIFT codes exists,
+- store country codes in a separate collection to build a country dictionary, which cannot be deleted.
+- use the first added country to define the country name.
