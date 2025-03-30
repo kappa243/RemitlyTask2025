@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  rest-api:
+    build:
+      context: ./rest-api
+      dockerfile: Dockerfile
+    container_name: remitly2025-rest-api
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://user:password@mongo:27017/swift?authSource=admin
+      SPRING_PROFILES_ACTIVE: prod
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongodb/mongodb-community-server:7.0-ubuntu2204
+    container_name: remitly2025-mongo
+    ports:
+      - "27017:27017"
+    expose:
+      - "27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: user
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: swift
