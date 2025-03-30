@@ -1,12 +1,18 @@
 package io.github.kappa243.remitly2025.services;
 
 import io.github.kappa243.remitly2025.controllers.BankResponse;
+import io.github.kappa243.remitly2025.exceptions.BankAlreadyExistsException;
 import io.github.kappa243.remitly2025.exceptions.BankNotFoundException;
+import io.github.kappa243.remitly2025.exceptions.HeadBankNotFoundException;
+import io.github.kappa243.remitly2025.model.BankItem;
+import io.github.kappa243.remitly2025.model.CountryItem;
 import io.github.kappa243.remitly2025.repositories.BanksRepository;
 import io.github.kappa243.remitly2025.repositories.CountriesRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.Optional;
 
 @Service
@@ -15,6 +21,9 @@ public class SwiftCodesServiceImpl implements SwiftCodesService {
     
     private final BanksRepository banksRepository;
     private final CountriesRepository countriesRepository;
+    
+    private final ProjectionFactory projectionFactory;
+    
     
     @Override
     public BankResponse getBankBySwiftCode(String swiftCode) throws BankNotFoundException {
@@ -25,5 +34,48 @@ public class SwiftCodesServiceImpl implements SwiftCodesService {
         }
         
         return response.get();
+    }
+    
+    @Override
+    public BankResponse addBank(BankItem bank) throws BankAlreadyExistsException, HeadBankNotFoundException {
+        // check if bank already exists
+        Optional<BankItem> existingBank = banksRepository.findById(bank.getSwiftCode());
+        
+        if (existingBank.isPresent()) {
+            throw new BankAlreadyExistsException();
+        }
+        
+        // check if country exists
+        Optional<CountryItem> country = countriesRepository.findById(bank.getCountryCode().getCountryCode());
+        
+        if (country.isEmpty()) {
+            countriesRepository.save(bank.getCountryCode());
+        }
+        // country requirements were not provided in task;
+        // we assume that country code is unique and is final after creation (dict)
+        
+        BankItem createdBank;
+        
+        if (!bank.isHeadquarter()) {
+            String headSwiftCode = bank.getSwiftCode().substring(0, 8) + "XXX";
+            Optional<BankItem> headBank = banksRepository.findById(headSwiftCode);
+            
+            if (headBank.isEmpty()) {
+                throw new HeadBankNotFoundException();
+            }
+            
+            headBank.get().getBranches().add(bank);
+            
+            createdBank = banksRepository.save(bank);
+            banksRepository.save(headBank.get());
+        } else {
+            if (bank.getBranches() == null) {
+                bank.setBranches(Collections.emptyList());
+            }
+            
+            createdBank = banksRepository.save(bank);
+        }
+        
+        return projectionFactory.createProjection(BankResponse.class, createdBank);
     }
 }

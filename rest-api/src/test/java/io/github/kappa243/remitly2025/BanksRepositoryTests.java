@@ -19,7 +19,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-public class BanksRepositoryTests extends CommonTestModule {
+public class BanksRepositoryTests extends BaseTestModule {
     
     @Autowired
     private BanksRepository banksRepository;
@@ -61,7 +61,7 @@ public class BanksRepositoryTests extends CommonTestModule {
         .name("Main Street Bank")
         .address("1234 Main St")
         .countryCode(countryPL)
-        .isHeadquarter(true)
+        .headquarter(true)
         .branches(new ArrayList<>())
         .build();
     
@@ -94,7 +94,7 @@ public class BanksRepositoryTests extends CommonTestModule {
         assertThat(resBankItem.getCountryName()).isEqualTo(bankItem.getCountryCode().getCountryName());
         assertThat(resBankItem.getName()).isEqualTo(bankItem.getName());
         assertThat(resBankItem.getAddress()).isEqualTo(bankItem.getAddress());
-        assertThat(resBankItem.getisHeadquarter()).isEqualTo(bankItem.isHeadquarter());
+        assertThat(resBankItem.getHeadquarter()).isEqualTo(bankItem.isHeadquarter());
         assertThat(resBankItem.getBranches()).isEqualTo(bankItem.getBranches());
     }
     
@@ -112,7 +112,7 @@ public class BanksRepositoryTests extends CommonTestModule {
             .name("Main Street Bank")
             .address("3333 Side St")
             .countryCode(countryPL)
-            .isHeadquarter(false)
+            .headquarter(false)
             .build();
         
         bankItem.getBranches().add(branch);

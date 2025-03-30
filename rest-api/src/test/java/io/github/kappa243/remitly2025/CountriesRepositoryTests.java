@@ -14,7 +14,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-public class CountriesRepositoryTests extends CommonTestModule {
+public class CountriesRepositoryTests extends BaseTestModule {
     
     @Autowired
     private CountriesRepository countriesRepository;

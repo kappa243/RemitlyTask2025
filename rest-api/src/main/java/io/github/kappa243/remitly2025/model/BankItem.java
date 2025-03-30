@@ -1,9 +1,13 @@
 package io.github.kappa243.remitly2025.model;
 
-import io.github.kappa243.remitly2025.model.validators.SwiftCodeValidator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.github.kappa243.remitly2025.model.validators.SwiftCode;
+import io.github.kappa243.remitly2025.model.validators.Uppercase;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,6 +15,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.util.List;
 
@@ -18,21 +23,25 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@EqualsAndHashCode
+@Builder(toBuilder = true)
 public class BankItem {
     
     @Id
-    @SwiftCodeValidator
+    @SwiftCode
     private String swiftCode;
     
     @NotEmpty
+    @Uppercase
     private String name;
     
     @NotEmpty
     private String address;
     
-    @NotEmpty
-    private boolean isHeadquarter;
+    @NotNull
+    @Field(name = "isHeadquarter")
+    @JsonProperty("isHeadquarter")
+    private boolean headquarter;
     
     @DBRef
     @Indexed
@@ -40,14 +49,14 @@ public class BankItem {
     private CountryItem countryCode;
     
     @DBRef
+    @Setter
     private List<BankItem> branches;
     
-    public BankItem(String swiftCode, String name, String address, boolean isHeadquarter, CountryItem countryCode) {
+    public BankItem(String swiftCode, String name, String address, boolean headquarter, CountryItem countryCode) {
         this.swiftCode = swiftCode;
         this.name = name;
         this.address = address;
-        this.isHeadquarter = isHeadquarter;
+        this.headquarter = headquarter;
         this.countryCode = countryCode;
     }
-    
 }

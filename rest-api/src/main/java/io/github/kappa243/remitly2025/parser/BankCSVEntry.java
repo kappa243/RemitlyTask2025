@@ -1,6 +1,7 @@
 package io.github.kappa243.remitly2025.parser;
 
-import com.opencsv.bean.CsvBindByName;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,20 +13,21 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class BankCSVEntry {
-    @CsvBindByName(column = "SWIFT CODE")
+    @JsonProperty("SWIFT CODE")
     private String swiftCode;
     
-    @CsvBindByName(column = "NAME")
+    @JsonProperty("NAME")
     private String name;
     
-    @CsvBindByName(column = "ADDRESS")
+    @JsonProperty("ADDRESS")
     private String address;
     
-    @CsvBindByName(column = "COUNTRY NAME")
+    @JsonProperty("COUNTRY NAME")
     private String countryName;
     
-    @CsvBindByName(column = "COUNTRY ISO2 CODE")
+    @JsonProperty("COUNTRY ISO2 CODE")
     private String countryCode;
     
 }

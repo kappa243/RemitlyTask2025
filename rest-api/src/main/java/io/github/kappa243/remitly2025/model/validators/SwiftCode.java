@@ -15,8 +15,10 @@ import java.lang.annotation.Target;
 @Constraint(validatedBy = {})
 @Target({ElementType.FIELD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface SwiftCodeValidator {
-    String message() default "Invalid SWIFT code";
+public @interface SwiftCode {
+    String message() default "invalid SWIFT code";
+    
     Class<?>[] groups() default {};
+    
     Class<? extends Payload>[] payload() default {};
 }

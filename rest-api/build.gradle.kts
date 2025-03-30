@@ -31,7 +31,7 @@ dependencies {
 
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6")
 
-	implementation("com.opencsv:opencsv:5.10")
+	implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.18.3")
 
 
 	compileOnly("org.projectlombok:lombok")
