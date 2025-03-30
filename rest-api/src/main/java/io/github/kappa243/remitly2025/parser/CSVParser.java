@@ -32,7 +32,7 @@ public class CSVParser {
         
         SwiftCodeItem swiftCodeItem = SwiftCodeItem.builder()
             .swiftCode(entry.getSwiftCode())
-            .name(entry.getName().trim().toUpperCase())
+            .bankName(entry.getBankName().trim().toUpperCase())
             .address(entry.getAddress().trim().toUpperCase())
             .countryISO2(countryItem)
             .build();

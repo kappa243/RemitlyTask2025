@@ -1,12 +1,12 @@
 package io.github.kappa243.remitly2025;
 
 
-import io.github.kappa243.remitly2025.controllers.SwiftCodeResponse;
 import io.github.kappa243.remitly2025.controllers.ReducedSwiftCodeResponse;
-import io.github.kappa243.remitly2025.model.SwiftCodeItem;
+import io.github.kappa243.remitly2025.controllers.SwiftCodeResponse;
 import io.github.kappa243.remitly2025.model.CountryItem;
-import io.github.kappa243.remitly2025.repositories.SwiftCodesRepository;
+import io.github.kappa243.remitly2025.model.SwiftCodeItem;
 import io.github.kappa243.remitly2025.repositories.CountriesRepository;
+import io.github.kappa243.remitly2025.repositories.SwiftCodesRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,7 +59,7 @@ public class SwiftCodesRepositoryTests extends BaseTestModule {
     
     SwiftCodeItem swiftCodeData = SwiftCodeItem.builder()
         .swiftCode("ABCDEFGHXXX")
-        .name("Main Street Bank")
+        .bankName("Main Street Bank")
         .address("1234 Main St")
         .countryISO2(countryPL)
         .headquarter(true)
@@ -93,7 +93,7 @@ public class SwiftCodesRepositoryTests extends BaseTestModule {
         assertThat(swiftCodeResponse.getSwiftCode()).isEqualTo(swiftCodeData.getSwiftCode());
         assertThat(swiftCodeResponse.getCountryISO2()).isEqualTo(swiftCodeData.getCountryISO2().getCountryISO2());
         assertThat(swiftCodeResponse.getCountryName()).isEqualTo(swiftCodeData.getCountryISO2().getCountryName());
-        assertThat(swiftCodeResponse.getName()).isEqualTo(swiftCodeData.getName());
+        assertThat(swiftCodeResponse.getBankName()).isEqualTo(swiftCodeData.getBankName());
         assertThat(swiftCodeResponse.getAddress()).isEqualTo(swiftCodeData.getAddress());
         assertThat(swiftCodeResponse.getHeadquarter()).isEqualTo(swiftCodeData.isHeadquarter());
         assertThat(swiftCodeResponse.getBranches()).isEqualTo(swiftCodeData.getBranches());
@@ -110,7 +110,7 @@ public class SwiftCodesRepositoryTests extends BaseTestModule {
     public void whenFindSwiftCodeDataByCodeAndSwiftCodeDataHasBranches_thenReturnSwiftCodeResponseWithBranches() {
         SwiftCodeItem branchSwiftCodeData = SwiftCodeItem.builder()
             .swiftCode("ABCDEFGHABC")
-            .name("Main Street Bank")
+            .bankName("Main Street Bank")
             .address("3333 Side St")
             .countryISO2(countryPL)
             .headquarter(false)

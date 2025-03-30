@@ -1,7 +1,6 @@
 package io.github.kappa243.remitly2025.exceptions;
 
 import jakarta.validation.ConstraintViolationException;
-import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -13,7 +12,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @ControllerAdvice
 public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
@@ -55,8 +56,16 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
     }
     
     @Override
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-        return ResponseEntity.badRequest().body("Validation Error: " + ex.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).collect(Collectors.joining(", ")));
+        List<String> errors = Stream.concat(
+            ex.getBindingResult().getFieldErrors().stream()
+                .map(err -> err.getField() + ": " + err.getDefaultMessage()),
+            ex.getBindingResult().getGlobalErrors().stream()
+                .map(err -> err.getObjectName() + ": " + err.getDefaultMessage())
+        ).collect(Collectors.toList());
+        
+        return new ResponseEntity<>("Validation Error: " + String.join(", ", errors), HttpStatus.BAD_REQUEST);
     }
     
 }

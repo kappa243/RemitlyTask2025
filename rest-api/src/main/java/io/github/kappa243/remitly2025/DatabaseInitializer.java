@@ -33,29 +33,25 @@ public class DatabaseInitializer implements CommandLineRunner {
     
     @Override
     public void run(String... args) {
-//        if (!mongoTemplate.collectionExists(BankItem.class) || !mongoTemplate.collectionExists(CountryItem.class)) {
-        // clear all data
-        mongoTemplate.dropCollection(SwiftCodeItem.class);
-        mongoTemplate.dropCollection(CountryItem.class);
-        
-        mongoTemplate.indexOps(SwiftCodeItem.class).ensureIndex(new Index().on("countryISO2", Sort.Direction.ASC).named("countryISO2_"));
-        
-        log.info("Initializing database with csv data");
-        
-        Pair<Set<CountryItem>, Set<SwiftCodeItem>> entries = null;
-        try {
-            entries = bankCSVParser.parseCSV();
+        if (!mongoTemplate.collectionExists(SwiftCodeItem.class) || !mongoTemplate.collectionExists(CountryItem.class)) {
+            log.info("Initializing database with csv data");
             
-        } catch (IOException e) {
-            log.error("Error while parsing CSV banks data", e);
-        } catch (RuntimeException e) {
-            log.error("Something went wrong during CSV parsing", e);
+            mongoTemplate.indexOps(SwiftCodeItem.class).ensureIndex(new Index().on("countryISO2", Sort.Direction.ASC).named("countryISO2_"));
+            
+            Pair<Set<CountryItem>, Set<SwiftCodeItem>> entries = null;
+            try {
+                entries = bankCSVParser.parseCSV();
+                
+            } catch (IOException e) {
+                log.error("Error while parsing CSV banks data", e);
+            } catch (RuntimeException e) {
+                log.error("Something went wrong during CSV parsing", e);
+            }
+            
+            if (entries != null) {
+                countriesRepository.saveAll(entries.getFirst());
+                swiftCodesRepository.saveAll(entries.getSecond());
+            }
         }
-        
-        if (entries != null) {
-            countriesRepository.saveAll(entries.getFirst());
-            swiftCodesRepository.saveAll(entries.getSecond());
-        }
-//        }
     }
 }

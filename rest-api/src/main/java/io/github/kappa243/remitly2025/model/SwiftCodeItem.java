@@ -33,7 +33,7 @@ public class SwiftCodeItem {
     
     @NotEmpty
     @Uppercase
-    private String name;
+    private String bankName;
     
     @NotEmpty
     private String address;
@@ -52,9 +52,9 @@ public class SwiftCodeItem {
     @Setter
     private List<SwiftCodeItem> branches;
     
-    public SwiftCodeItem(String swiftCode, String name, String address, boolean headquarter, CountryItem countryISO2) {
+    public SwiftCodeItem(String swiftCode, String bankName, String address, boolean headquarter, CountryItem countryISO2) {
         this.swiftCode = swiftCode;
-        this.name = name;
+        this.bankName = bankName;
         this.address = address;
         this.headquarter = headquarter;
         this.countryISO2 = countryISO2;

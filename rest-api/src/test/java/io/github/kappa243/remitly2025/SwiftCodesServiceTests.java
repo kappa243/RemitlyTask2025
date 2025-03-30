@@ -1,15 +1,15 @@
 package io.github.kappa243.remitly2025;
 
 import io.github.kappa243.remitly2025.controllers.SwiftCodeResponse;
-import io.github.kappa243.remitly2025.exceptions.SwiftCodeAlreadyExistsException;
-import io.github.kappa243.remitly2025.exceptions.SwiftCodeNotFoundException;
 import io.github.kappa243.remitly2025.exceptions.ChildSwiftCodesFoundException;
 import io.github.kappa243.remitly2025.exceptions.CountryNotExistsException;
 import io.github.kappa243.remitly2025.exceptions.HeadSwiftCodeNotFoundException;
-import io.github.kappa243.remitly2025.model.SwiftCodeItem;
+import io.github.kappa243.remitly2025.exceptions.SwiftCodeAlreadyExistsException;
+import io.github.kappa243.remitly2025.exceptions.SwiftCodeNotFoundException;
 import io.github.kappa243.remitly2025.model.CountryItem;
-import io.github.kappa243.remitly2025.repositories.SwiftCodesRepository;
+import io.github.kappa243.remitly2025.model.SwiftCodeItem;
 import io.github.kappa243.remitly2025.repositories.CountriesRepository;
+import io.github.kappa243.remitly2025.repositories.SwiftCodesRepository;
 import io.github.kappa243.remitly2025.services.SwiftCodesServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,7 +48,7 @@ public class SwiftCodesServiceTests extends BaseTestModule {
     
     SwiftCodeItem swiftCodeData = SwiftCodeItem.builder()
         .swiftCode("ABCDEFGHXXX")
-        .name("MAIN STREET BANK")
+        .bankName("MAIN STREET BANK")
         .address("1234 Main St")
         .countryISO2(countryPL)
         .headquarter(true)
@@ -73,7 +73,7 @@ public class SwiftCodesServiceTests extends BaseTestModule {
             assertThat(response.getSwiftCode()).isEqualTo(swiftCodeData.getSwiftCode());
             assertThat(response.getCountryISO2()).isEqualTo(swiftCodeData.getCountryISO2().getCountryISO2());
             assertThat(response.getCountryName()).isEqualTo(swiftCodeData.getCountryISO2().getCountryName());
-            assertThat(response.getName()).isEqualTo(swiftCodeData.getName());
+            assertThat(response.getBankName()).isEqualTo(swiftCodeData.getBankName());
             assertThat(response.getAddress()).isEqualTo(swiftCodeData.getAddress());
             assertThat(response.getHeadquarter()).isEqualTo(swiftCodeData.isHeadquarter());
             assertThat(response.getBranches().size()).isEqualTo(swiftCodeData.getBranches().size());

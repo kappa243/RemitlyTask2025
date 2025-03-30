@@ -60,7 +60,7 @@ public class SwiftCodesController {
         
         SwiftCodeItem swiftCodeItem = SwiftCodeItem.builder()
             .swiftCode(swiftCodeRequest.getSwiftCode())
-            .name(swiftCodeRequest.getName())
+            .bankName(swiftCodeRequest.getBankName())
             .address(swiftCodeRequest.getAddress())
             .headquarter(swiftCodeRequest.isHeadquarter())
             .countryISO2(countryItem)

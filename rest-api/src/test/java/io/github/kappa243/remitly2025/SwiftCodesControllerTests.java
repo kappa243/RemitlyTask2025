@@ -1,17 +1,17 @@
 package io.github.kappa243.remitly2025;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.kappa243.remitly2025.controllers.CountrySwiftCodesResponse;
 import io.github.kappa243.remitly2025.controllers.SwiftCodeRequest;
 import io.github.kappa243.remitly2025.controllers.SwiftCodeResponse;
-import io.github.kappa243.remitly2025.controllers.CountrySwiftCodesResponse;
 import io.github.kappa243.remitly2025.controllers.SwiftCodesController;
-import io.github.kappa243.remitly2025.exceptions.SwiftCodeAlreadyExistsException;
-import io.github.kappa243.remitly2025.exceptions.SwiftCodeNotFoundException;
 import io.github.kappa243.remitly2025.exceptions.ChildSwiftCodesFoundException;
 import io.github.kappa243.remitly2025.exceptions.CountryNotExistsException;
 import io.github.kappa243.remitly2025.exceptions.HeadSwiftCodeNotFoundException;
-import io.github.kappa243.remitly2025.model.SwiftCodeItem;
+import io.github.kappa243.remitly2025.exceptions.SwiftCodeAlreadyExistsException;
+import io.github.kappa243.remitly2025.exceptions.SwiftCodeNotFoundException;
 import io.github.kappa243.remitly2025.model.CountryItem;
+import io.github.kappa243.remitly2025.model.SwiftCodeItem;
 import io.github.kappa243.remitly2025.services.SwiftCodesService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,7 +56,7 @@ public class SwiftCodesControllerTests {
     CountryItem countryPL = new CountryItem("PL", "POLAND");
     SwiftCodeItem swiftCodeData = SwiftCodeItem.builder()
         .swiftCode("ABCDEFGHXXX")
-        .name("MAIN STREET BANK")
+        .bankName("MAIN STREET BANK")
         .address("1234 Main St")
         .countryISO2(countryPL)
         .headquarter(true)
@@ -64,7 +64,7 @@ public class SwiftCodesControllerTests {
     
     SwiftCodeRequest swiftCodeRequest = SwiftCodeRequest.builder()
         .swiftCode(swiftCodeData.getSwiftCode())
-        .name(swiftCodeData.getName())
+        .bankName(swiftCodeData.getBankName())
         .address(swiftCodeData.getAddress())
         .countryISO2(countryPL.getCountryISO2())
         .countryName(countryPL.getCountryName())
@@ -131,7 +131,7 @@ public class SwiftCodesControllerTests {
     public void whenPostSwiftCodeDataAndInvalidRequest_thenBadRequest() throws Exception {
         SwiftCodeRequest invalidSwiftCodeRequest = swiftCodeRequest.toBuilder()
             .swiftCode("AAA")
-            .name("Main street bank")
+            .bankName("Main street bank")
             .build();
         
         mockMvc.perform(post(PATH + "/")

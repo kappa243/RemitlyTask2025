@@ -25,7 +25,7 @@ public class SwiftCodeRequest {
     
     @NotEmpty
     @Uppercase
-    private String name;
+    private String bankName;
     
     @NotEmpty
     private String address;

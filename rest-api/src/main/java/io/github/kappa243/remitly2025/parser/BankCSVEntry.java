@@ -19,7 +19,7 @@ public class BankCSVEntry {
     private String swiftCode;
     
     @JsonProperty("NAME")
-    private String name;
+    private String bankName;
     
     @JsonProperty("ADDRESS")
     private String address;

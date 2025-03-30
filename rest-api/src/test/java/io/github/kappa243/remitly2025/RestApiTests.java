@@ -1,10 +1,10 @@
 package io.github.kappa243.remitly2025;
 
 import io.github.kappa243.remitly2025.controllers.SwiftCodeRequest;
-import io.github.kappa243.remitly2025.model.SwiftCodeItem;
 import io.github.kappa243.remitly2025.model.CountryItem;
-import io.github.kappa243.remitly2025.repositories.SwiftCodesRepository;
+import io.github.kappa243.remitly2025.model.SwiftCodeItem;
 import io.github.kappa243.remitly2025.repositories.CountriesRepository;
+import io.github.kappa243.remitly2025.repositories.SwiftCodesRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,7 +68,7 @@ public class RestApiTests extends BaseTestModule {
     
     SwiftCodeItem swiftCodeData = SwiftCodeItem.builder()
         .swiftCode("ABCDEFGHXXX")
-        .name("MAIN STREET BANK")
+        .bankName("MAIN STREET BANK")
         .address("1234 Main St")
         .countryISO2(countryPL)
         .headquarter(true)
@@ -77,7 +77,7 @@ public class RestApiTests extends BaseTestModule {
     
     SwiftCodeRequest swiftCodeRequest = SwiftCodeRequest.builder()
         .swiftCode(swiftCodeData.getSwiftCode())
-        .name(swiftCodeData.getName())
+        .bankName(swiftCodeData.getBankName())
         .address(swiftCodeData.getAddress())
         .countryISO2(countryPL.getCountryISO2())
         .countryName(countryPL.getCountryName())
@@ -92,9 +92,8 @@ public class RestApiTests extends BaseTestModule {
             .get("/{swiftCode}", headSwiftCode)
             .then()
             .statusCode(200)
-            .log().all()
             .body("swiftCode", is(headSwiftCode))
-            .body("name", is("MBANK S.A. (FORMERLY BRE BANK S.A.)"))
+            .body("bankName", is("MBANK S.A. (FORMERLY BRE BANK S.A.)"))
             .body("address", is("UL. PROSTA 18  WARSZAWA, MAZOWIECKIE, 00-850"))
             .body("countryISO2", is("PL"))
             .body("countryName", is("POLAND"))
@@ -157,9 +156,8 @@ public class RestApiTests extends BaseTestModule {
             .get("/{swiftCode}", swiftCodeRequest.getSwiftCode())
             .then()
             .statusCode(200)
-            .log().all()
             .body("swiftCode", is(swiftCodeRequest.getSwiftCode()))
-            .body("name", is(swiftCodeRequest.getName()))
+            .body("bankName", is(swiftCodeRequest.getBankName()))
             .body("address", is(swiftCodeRequest.getAddress()))
             .body("countryISO2", is(swiftCodeRequest.getCountryISO2()))
             .body("countryName", is(swiftCodeRequest.getCountryName()))

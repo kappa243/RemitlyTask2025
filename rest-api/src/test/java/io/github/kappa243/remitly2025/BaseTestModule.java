@@ -34,12 +34,14 @@ public abstract class BaseTestModule {
     
     @DynamicPropertySource
     static void mongoProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.data.mongodb.host", mongoDBContainer::getHost);
-        registry.add("spring.data.mongodb.port", mongoDBContainer::getFirstMappedPort);
-        registry.add("spring.data.mongodb.username", () -> "user");
-        registry.add("spring.data.mongodb.password", () -> "password");
-        registry.add("spring.data.mongodb.database", () -> "swift");
-        registry.add("spring.data.mongodb.authentication-database", () -> "admin");
+        registry.add("spring.data.mongodb.uri", () -> String.format(
+            "mongodb://%s:%s@%s:%d/%s?authSource=admin",
+            "user",
+            "password",
+            mongoDBContainer.getHost(),
+            mongoDBContainer.getFirstMappedPort(),
+            "swift"
+        ));
     }
     
     @BeforeEach

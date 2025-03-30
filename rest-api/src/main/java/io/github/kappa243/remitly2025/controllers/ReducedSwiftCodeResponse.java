@@ -10,7 +10,7 @@ import org.springframework.data.rest.core.config.Projection;
 public interface ReducedSwiftCodeResponse {
     String getSwiftCode();
     
-    String getName();
+    String getBankName();
     
     String getAddress();
     
