@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 @HeadquarterMatch
-public class BankRequest {
+public class SwiftCodeRequest {
     
     @NotEmpty
     @SwiftCode

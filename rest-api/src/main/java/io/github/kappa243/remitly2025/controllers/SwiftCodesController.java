@@ -1,12 +1,12 @@
 package io.github.kappa243.remitly2025.controllers;
 
-import io.github.kappa243.remitly2025.exceptions.BankAlreadyExistsException;
-import io.github.kappa243.remitly2025.exceptions.BankNotFoundException;
-import io.github.kappa243.remitly2025.exceptions.ChildBranchesFoundException;
+import io.github.kappa243.remitly2025.exceptions.ChildSwiftCodesFoundException;
 import io.github.kappa243.remitly2025.exceptions.CountryNotExistsException;
-import io.github.kappa243.remitly2025.exceptions.HeadBankNotFoundException;
-import io.github.kappa243.remitly2025.model.BankItem;
+import io.github.kappa243.remitly2025.exceptions.HeadSwiftCodeNotFoundException;
+import io.github.kappa243.remitly2025.exceptions.SwiftCodeAlreadyExistsException;
+import io.github.kappa243.remitly2025.exceptions.SwiftCodeNotFoundException;
 import io.github.kappa243.remitly2025.model.CountryItem;
+import io.github.kappa243.remitly2025.model.SwiftCodeItem;
 import io.github.kappa243.remitly2025.model.validators.CountryCode;
 import io.github.kappa243.remitly2025.model.validators.SwiftCode;
 import io.github.kappa243.remitly2025.services.SwiftCodesService;
@@ -38,35 +38,35 @@ public class SwiftCodesController {
     @GetMapping("/{swiftCode}")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public BankResponse getBankData(@PathVariable @SwiftCode String swiftCode) throws BankNotFoundException {
-        return swiftCodesService.getBankBySwiftCode(swiftCode);
+    public SwiftCodeResponse getBankData(@PathVariable @SwiftCode String swiftCode) throws SwiftCodeNotFoundException {
+        return swiftCodesService.getSwiftCodeDataBySwiftCode(swiftCode);
     }
     
     @GetMapping("/country/{countryISO2code}")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public CountryBanksResponse getBanksByCountryISO2(@PathVariable @CountryCode String countryISO2code) throws CountryNotExistsException {
-        return swiftCodesService.getBanksByCountryISO2(countryISO2code);
+    public CountrySwiftCodesResponse getBanksByCountryISO2(@PathVariable @CountryCode String countryISO2code) throws CountryNotExistsException {
+        return swiftCodesService.getSwiftCodesDataByCountryISO2(countryISO2code);
     }
     
     @PostMapping("/")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<Map<String, String>> addBank(@Valid @RequestBody BankRequest bankRequest) throws HeadBankNotFoundException, BankAlreadyExistsException {
+    public ResponseEntity<Map<String, String>> addBank(@Valid @RequestBody SwiftCodeRequest swiftCodeRequest) throws HeadSwiftCodeNotFoundException, SwiftCodeAlreadyExistsException {
         // map request to items
         CountryItem countryItem = CountryItem.builder()
-            .countryISO2(bankRequest.getCountryISO2())
-            .countryName(bankRequest.getCountryName())
+            .countryISO2(swiftCodeRequest.getCountryISO2())
+            .countryName(swiftCodeRequest.getCountryName())
             .build();
         
-        BankItem bankItem = BankItem.builder()
-            .swiftCode(bankRequest.getSwiftCode())
-            .name(bankRequest.getName())
-            .address(bankRequest.getAddress())
-            .headquarter(bankRequest.isHeadquarter())
+        SwiftCodeItem swiftCodeItem = SwiftCodeItem.builder()
+            .swiftCode(swiftCodeRequest.getSwiftCode())
+            .name(swiftCodeRequest.getName())
+            .address(swiftCodeRequest.getAddress())
+            .headquarter(swiftCodeRequest.isHeadquarter())
             .countryISO2(countryItem)
             .build();
         
-        swiftCodesService.addBank(bankItem);
+        swiftCodesService.addSwiftCodeData(swiftCodeItem);
         
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(Map.of("message", "ok"));
@@ -74,8 +74,8 @@ public class SwiftCodesController {
     
     @DeleteMapping("/{swiftCode}")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<Map<String, String>> deleteBank(@PathVariable @SwiftCode String swiftCode) throws BankNotFoundException, ChildBranchesFoundException {
-        swiftCodesService.deleteBank(swiftCode);
+    public ResponseEntity<Map<String, String>> deleteBank(@PathVariable @SwiftCode String swiftCode) throws SwiftCodeNotFoundException, ChildSwiftCodesFoundException {
+        swiftCodesService.deleteSwiftCodeData(swiftCode);
         
         return ResponseEntity.status(HttpStatus.OK)
             .body(Map.of("message", "ok"));

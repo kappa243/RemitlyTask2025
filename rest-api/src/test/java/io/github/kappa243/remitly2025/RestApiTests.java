@@ -1,9 +1,9 @@
 package io.github.kappa243.remitly2025;
 
-import io.github.kappa243.remitly2025.controllers.BankRequest;
-import io.github.kappa243.remitly2025.model.BankItem;
+import io.github.kappa243.remitly2025.controllers.SwiftCodeRequest;
+import io.github.kappa243.remitly2025.model.SwiftCodeItem;
 import io.github.kappa243.remitly2025.model.CountryItem;
-import io.github.kappa243.remitly2025.repositories.BanksRepository;
+import io.github.kappa243.remitly2025.repositories.SwiftCodesRepository;
 import io.github.kappa243.remitly2025.repositories.CountriesRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,7 +26,7 @@ import static org.hamcrest.Matchers.is;
 public class RestApiTests extends BaseTestModule {
     
     @Autowired
-    private BanksRepository banksRepository;
+    private SwiftCodesRepository swiftCodesRepository;
     
     @Autowired
     private CountriesRepository countriesRepository;
@@ -39,25 +39,25 @@ public class RestApiTests extends BaseTestModule {
     
     @BeforeEach
     public void fillDatabase() {
-        if (mongoTemplate.collectionExists(BankItem.class) || mongoTemplate.collectionExists(CountryItem.class)) {
+        if (mongoTemplate.collectionExists(SwiftCodeItem.class) || mongoTemplate.collectionExists(CountryItem.class)) {
             // clear all data
-            mongoTemplate.dropCollection(BankItem.class);
+            mongoTemplate.dropCollection(SwiftCodeItem.class);
             mongoTemplate.dropCollection(CountryItem.class);
             
-            mongoTemplate.indexOps(BankItem.class).ensureIndex(new Index().on("countryISO2", Sort.Direction.ASC).named("countryISO2_"));
+            mongoTemplate.indexOps(SwiftCodeItem.class).ensureIndex(new Index().on("countryISO2", Sort.Direction.ASC).named("countryISO2_"));
         }
         
-        var country_pl = new CountryItem("PL", "POLAND");
+        var country = new CountryItem("PL", "POLAND");
         
-        countriesRepository.save(country_pl);
+        countriesRepository.save(country);
         
-        var bank_child_a = new BankItem("BREXPLPWWRO", "MBANK S.A. (FORMERLY BRE BANK S.A.)", "PL. JANA PAWLA II 9  WROCLAW, DOLNOSLASKIE, 50-136", false, country_pl);
-        var bank_child_b = new BankItem("BREXPLPWWAL", "MBANK S.A. (FORMERLY BRE BANK S.A.)", "SIENKIEWICZA 2  WALBRZYCH, DOLNOSLASKIE, 58-300", false, country_pl);
-        var bank_head = new BankItem("BREXPLPWXXX", "MBANK S.A. (FORMERLY BRE BANK S.A.)", "UL. PROSTA 18  WARSZAWA, MAZOWIECKIE, 00-850", true, country_pl, List.of(bank_child_a, bank_child_b));
+        var swiftCodeChildA = new SwiftCodeItem("BREXPLPWWRO", "MBANK S.A. (FORMERLY BRE BANK S.A.)", "PL. JANA PAWLA II 9  WROCLAW, DOLNOSLASKIE, 50-136", false, country);
+        var swiftCodeChildN = new SwiftCodeItem("BREXPLPWWAL", "MBANK S.A. (FORMERLY BRE BANK S.A.)", "SIENKIEWICZA 2  WALBRZYCH, DOLNOSLASKIE, 58-300", false, country);
+        var headSwiftCode = new SwiftCodeItem("BREXPLPWXXX", "MBANK S.A. (FORMERLY BRE BANK S.A.)", "UL. PROSTA 18  WARSZAWA, MAZOWIECKIE, 00-850", true, country, List.of(swiftCodeChildA, swiftCodeChildN));
         
-        banksRepository.save(bank_child_a);
-        banksRepository.save(bank_child_b);
-        banksRepository.save(bank_head);
+        swiftCodesRepository.save(swiftCodeChildA);
+        swiftCodesRepository.save(swiftCodeChildN);
+        swiftCodesRepository.save(headSwiftCode);
     }
     
     
@@ -66,7 +66,7 @@ public class RestApiTests extends BaseTestModule {
     
     CountryItem countryPL = new CountryItem("PL", "POLAND");
     
-    BankItem bankItem = BankItem.builder()
+    SwiftCodeItem swiftCodeData = SwiftCodeItem.builder()
         .swiftCode("ABCDEFGHXXX")
         .name("MAIN STREET BANK")
         .address("1234 Main St")
@@ -75,13 +75,13 @@ public class RestApiTests extends BaseTestModule {
         .branches(new ArrayList<>())
         .build();
     
-    BankRequest bankRequest = BankRequest.builder()
-        .swiftCode(bankItem.getSwiftCode())
-        .name(bankItem.getName())
-        .address(bankItem.getAddress())
+    SwiftCodeRequest swiftCodeRequest = SwiftCodeRequest.builder()
+        .swiftCode(swiftCodeData.getSwiftCode())
+        .name(swiftCodeData.getName())
+        .address(swiftCodeData.getAddress())
         .countryISO2(countryPL.getCountryISO2())
         .countryName(countryPL.getCountryName())
-        .headquarter(bankItem.isHeadquarter())
+        .headquarter(swiftCodeData.isHeadquarter())
         .build();
     
     //
@@ -111,7 +111,7 @@ public class RestApiTests extends BaseTestModule {
     }
     
     @Test
-    public void whenGetNonexistentCode_thenNotFound() {
+    public void whenGetNonExistentCode_thenNotFound() {
         String swiftCode = "ABCDEFGHIJK";
         
         when()
@@ -143,10 +143,10 @@ public class RestApiTests extends BaseTestModule {
     }
     
     @Test
-    public void whenPostBankAndIsHeadquarter_thenOkAndDataIsCorrect() throws JsonProcessingException {
+    public void whenPostSwiftCodeRequestAndIsHeadquarter_thenOkAndDataIsCorrect() throws JsonProcessingException {
         given()
             .contentType("application/json")
-            .body(objectMapper.writeValueAsString(bankRequest))
+            .body(objectMapper.writeValueAsString(swiftCodeRequest))
             .when()
             .post("/")
             .then()
@@ -154,28 +154,28 @@ public class RestApiTests extends BaseTestModule {
             .body(containsString("ok"));
         
         when()
-            .get("/{swiftCode}", bankRequest.getSwiftCode())
+            .get("/{swiftCode}", swiftCodeRequest.getSwiftCode())
             .then()
             .statusCode(200)
             .log().all()
-            .body("swiftCode", is(bankRequest.getSwiftCode()))
-            .body("name", is(bankRequest.getName()))
-            .body("address", is(bankRequest.getAddress()))
-            .body("countryISO2", is(bankRequest.getCountryISO2()))
-            .body("countryName", is(bankRequest.getCountryName()))
+            .body("swiftCode", is(swiftCodeRequest.getSwiftCode()))
+            .body("name", is(swiftCodeRequest.getName()))
+            .body("address", is(swiftCodeRequest.getAddress()))
+            .body("countryISO2", is(swiftCodeRequest.getCountryISO2()))
+            .body("countryName", is(swiftCodeRequest.getCountryName()))
             .body("isHeadquarter", is(true));
     }
     
     @Test
-    public void whenPostBankAndHasHeadquarter_thenOk() throws JsonProcessingException {
-        BankRequest branchBankRequest = bankRequest.toBuilder()
+    public void whenPostSwiftCodeRequestAndHasHeadquarter_thenOk() throws JsonProcessingException {
+        SwiftCodeRequest branchSwiftCodeRequest = swiftCodeRequest.toBuilder()
             .swiftCode(headSwiftCode.substring(0, 8) + "ABC")
             .headquarter(false)
             .build();
         
         given()
             .contentType("application/json")
-            .body(objectMapper.writeValueAsString(branchBankRequest))
+            .body(objectMapper.writeValueAsString(branchSwiftCodeRequest))
             .when()
             .post("/")
             .then()
@@ -187,45 +187,45 @@ public class RestApiTests extends BaseTestModule {
             .get("/{swiftCode}", headSwiftCode)
             .then()
             .statusCode(200)
-            .body("branches.swiftCode", hasItem(branchBankRequest.getSwiftCode()));
+            .body("branches.swiftCode", hasItem(branchSwiftCodeRequest.getSwiftCode()));
     }
     
     @Test
-    public void whenPostBankAndHeadquarterNotExists_thenConflict() throws JsonProcessingException {
-        BankRequest branchBankRequest = bankRequest.toBuilder()
+    public void whenPostSwiftCodeRequestAndHeadquarterNotExists_thenConflict() throws JsonProcessingException {
+        SwiftCodeRequest branchSwiftCodeRequest = swiftCodeRequest.toBuilder()
             .swiftCode("NOTEXIST" + "ABC")
             .headquarter(false)
             .build();
         
         given()
             .contentType("application/json")
-            .body(objectMapper.writeValueAsString(branchBankRequest))
+            .body(objectMapper.writeValueAsString(branchSwiftCodeRequest))
             .when()
             .post("/")
             .then()
             .statusCode(409)
-            .body(containsString("Headquarter bank does not exists"));
+            .body(containsString("Headquarter SWIFT code does not exists"));
     }
     
     @Test
-    public void whenPostBankAndBankExists_thenConflict() throws JsonProcessingException {
-        BankRequest branchBankRequest = bankRequest.toBuilder()
+    public void whenPostSwiftCodeRequestAndSwiftCodeDataExists_thenConflict() throws JsonProcessingException {
+        SwiftCodeRequest branchSwiftCodeRequest = swiftCodeRequest.toBuilder()
             .swiftCode(branchSwiftCode)
             .headquarter(false)
             .build();
         
         given()
             .contentType("application/json")
-            .body(objectMapper.writeValueAsString(branchBankRequest))
+            .body(objectMapper.writeValueAsString(branchSwiftCodeRequest))
             .when()
             .post("/")
             .then()
             .statusCode(409)
-            .body(containsString("Bank already exists"));
+            .body(containsString("SWIFT code already exists"));
     }
     
     @Test
-    public void whenGetBanksByCountryISO2_thenOk() {
+    public void whenGetSwiftCodesByCountryISO2_thenOk() {
         String countryISO2 = "PL";
         
         when()
@@ -237,7 +237,7 @@ public class RestApiTests extends BaseTestModule {
     }
     
     @Test
-    public void whenGetBanksByCountryISO2AndCountryDoesNotExists_thenNotFound() {
+    public void whenGetSwiftCodesByCountryISO2AndCountryDoesNotExists_thenNotFound() {
         String countryISO2 = "QQ";
         
         when()
@@ -248,7 +248,7 @@ public class RestApiTests extends BaseTestModule {
     }
     
     @Test
-    public void whenDeleteBank_thenOk() {
+    public void whenDeleteCode_thenOk() {
         when()
             .delete("/{swiftCode}", branchSwiftCode)
             .then()
@@ -261,7 +261,7 @@ public class RestApiTests extends BaseTestModule {
     }
     
     @Test
-    public void whenDeleteBankAndDoesNotExists_thenNotFound() {
+    public void whenDeleteCodeAndSwiftCodeDataDoesNotExists_thenNotFound() {
         String swiftCode = "ABCDEFGHIJK";
         
         when()
@@ -271,7 +271,7 @@ public class RestApiTests extends BaseTestModule {
     }
     
     @Test
-    public void whenDeleteHeadBankAndHasBranches_thenConflict() {
+    public void whenDeleteHeadCodeAndHeadCodeHasBranches_thenConflict() {
         when()
             .delete("/{swiftCode}", headSwiftCode)
             .then()

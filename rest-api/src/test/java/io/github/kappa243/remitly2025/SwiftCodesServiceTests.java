@@ -1,15 +1,14 @@
 package io.github.kappa243.remitly2025;
 
-import io.github.kappa243.remitly2025.controllers.BankResponse;
-import io.github.kappa243.remitly2025.controllers.CountryBanksResponse;
-import io.github.kappa243.remitly2025.exceptions.BankAlreadyExistsException;
-import io.github.kappa243.remitly2025.exceptions.BankNotFoundException;
-import io.github.kappa243.remitly2025.exceptions.ChildBranchesFoundException;
+import io.github.kappa243.remitly2025.controllers.SwiftCodeResponse;
+import io.github.kappa243.remitly2025.exceptions.SwiftCodeAlreadyExistsException;
+import io.github.kappa243.remitly2025.exceptions.SwiftCodeNotFoundException;
+import io.github.kappa243.remitly2025.exceptions.ChildSwiftCodesFoundException;
 import io.github.kappa243.remitly2025.exceptions.CountryNotExistsException;
-import io.github.kappa243.remitly2025.exceptions.HeadBankNotFoundException;
-import io.github.kappa243.remitly2025.model.BankItem;
+import io.github.kappa243.remitly2025.exceptions.HeadSwiftCodeNotFoundException;
+import io.github.kappa243.remitly2025.model.SwiftCodeItem;
 import io.github.kappa243.remitly2025.model.CountryItem;
-import io.github.kappa243.remitly2025.repositories.BanksRepository;
+import io.github.kappa243.remitly2025.repositories.SwiftCodesRepository;
 import io.github.kappa243.remitly2025.repositories.CountriesRepository;
 import io.github.kappa243.remitly2025.services.SwiftCodesServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,7 +31,7 @@ import static org.mockito.Mockito.when;
 public class SwiftCodesServiceTests extends BaseTestModule {
     
     @Mock
-    BanksRepository banksRepository;
+    SwiftCodesRepository swiftCodesRepository;
     
     @Mock
     CountriesRepository countriesRepository;
@@ -47,7 +46,7 @@ public class SwiftCodesServiceTests extends BaseTestModule {
     
     CountryItem countryPL = new CountryItem("PL", "POLAND");
     
-    BankItem bankItem = BankItem.builder()
+    SwiftCodeItem swiftCodeData = SwiftCodeItem.builder()
         .swiftCode("ABCDEFGHXXX")
         .name("MAIN STREET BANK")
         .address("1234 Main St")
@@ -56,129 +55,129 @@ public class SwiftCodesServiceTests extends BaseTestModule {
         .branches(new ArrayList<>())
         .build();
     
-    BankResponse bankResponse;
+    SwiftCodeResponse swiftCodeResponse;
     
     @BeforeEach
     public void beforeEach() {
-        bankResponse = projectionFactory.createProjection(BankResponse.class, bankItem);
+        swiftCodeResponse = projectionFactory.createProjection(SwiftCodeResponse.class, swiftCodeData);
     }
     
     
     @Test
-    public void whenGetBankBySwiftCodeAndBankExists_thenReturnBankResponse() {
-        when(banksRepository.findBySwiftCode(bankItem.getSwiftCode())).thenReturn(Optional.of(bankResponse));
+    public void whenGetSwiftCodeDataByCodeAndSwiftCodeDataExists_thenReturnSwiftCodeResponse() {
+        when(swiftCodesRepository.findBySwiftCode(swiftCodeData.getSwiftCode())).thenReturn(Optional.of(swiftCodeResponse));
         
         assertThatCode(() -> {
-            BankResponse response = swiftCodesService.getBankBySwiftCode(bankItem.getSwiftCode());
+            SwiftCodeResponse response = swiftCodesService.getSwiftCodeDataBySwiftCode(swiftCodeData.getSwiftCode());
             
-            assertThat(response.getSwiftCode()).isEqualTo(bankItem.getSwiftCode());
-            assertThat(response.getCountryISO2()).isEqualTo(bankItem.getCountryISO2().getCountryISO2());
-            assertThat(response.getCountryName()).isEqualTo(bankItem.getCountryISO2().getCountryName());
-            assertThat(response.getName()).isEqualTo(bankItem.getName());
-            assertThat(response.getAddress()).isEqualTo(bankItem.getAddress());
-            assertThat(response.getHeadquarter()).isEqualTo(bankItem.isHeadquarter());
-            assertThat(response.getBranches().size()).isEqualTo(bankItem.getBranches().size());
+            assertThat(response.getSwiftCode()).isEqualTo(swiftCodeData.getSwiftCode());
+            assertThat(response.getCountryISO2()).isEqualTo(swiftCodeData.getCountryISO2().getCountryISO2());
+            assertThat(response.getCountryName()).isEqualTo(swiftCodeData.getCountryISO2().getCountryName());
+            assertThat(response.getName()).isEqualTo(swiftCodeData.getName());
+            assertThat(response.getAddress()).isEqualTo(swiftCodeData.getAddress());
+            assertThat(response.getHeadquarter()).isEqualTo(swiftCodeData.isHeadquarter());
+            assertThat(response.getBranches().size()).isEqualTo(swiftCodeData.getBranches().size());
         }).doesNotThrowAnyException();
     }
     
     @Test
-    public void whenGetBankBySwiftCodeAndBankDoesNotExist_thenThrowBankNotFoundException() {
-        when(banksRepository.findBySwiftCode(bankItem.getSwiftCode())).thenReturn(Optional.empty());
+    public void whenGetSwiftCodeDataByCodeAndSwiftCodeDataDoesNotExist_thenThrowSwiftCodeNotFoundException() {
+        when(swiftCodesRepository.findBySwiftCode(swiftCodeData.getSwiftCode())).thenReturn(Optional.empty());
         
-        assertThatThrownBy(() -> swiftCodesService.getBankBySwiftCode(bankItem.getSwiftCode()))
-            .isInstanceOf(BankNotFoundException.class);
+        assertThatThrownBy(() -> swiftCodesService.getSwiftCodeDataBySwiftCode(swiftCodeData.getSwiftCode()))
+            .isInstanceOf(SwiftCodeNotFoundException.class);
     }
     
     @Test
-    public void whenSaveBankAndBankDoesNotExistsAndCountryExistsAndIsHeadquarter_thenSaveBank() {
-        when(banksRepository.findById(bankItem.getSwiftCode())).thenReturn(Optional.empty());
+    public void whenSaveSwiftCodeDataAndSwiftCodeDataDoesNotExistsAndCountryExistsAndIsHeadquarter_thenSaveSwiftCodeData() {
+        when(swiftCodesRepository.findById(swiftCodeData.getSwiftCode())).thenReturn(Optional.empty());
         when(countriesRepository.findById(countryPL.getCountryISO2())).thenReturn(Optional.of(countryPL));
-        when(banksRepository.save(bankItem)).thenReturn(bankItem);
+        when(swiftCodesRepository.save(swiftCodeData)).thenReturn(swiftCodeData);
         
-        assertThatCode(() -> swiftCodesService.addBank(bankItem)).doesNotThrowAnyException();
+        assertThatCode(() -> swiftCodesService.addSwiftCodeData(swiftCodeData)).doesNotThrowAnyException();
     }
     
     @Test
-    public void whenSaveBankAndBankDoesNotExistsAndCountryDoesNotExistsAndIsHeadquarter_thenSaveBank() {
-        when(banksRepository.findById(bankItem.getSwiftCode())).thenReturn(Optional.empty());
+    public void whenSaveSwiftCodeDataAndSwiftCodeDataDoesNotExistsAndCountryDoesNotExistsAndIsHeadquarter_thenSaveSwiftCodeData() {
+        when(swiftCodesRepository.findById(swiftCodeData.getSwiftCode())).thenReturn(Optional.empty());
         when(countriesRepository.findById(countryPL.getCountryISO2())).thenReturn(Optional.empty());
         when(countriesRepository.save(countryPL)).thenReturn(countryPL);
-        when(banksRepository.save(bankItem)).thenReturn(bankItem);
+        when(swiftCodesRepository.save(swiftCodeData)).thenReturn(swiftCodeData);
         
-        assertThatCode(() -> swiftCodesService.addBank(bankItem)).doesNotThrowAnyException();
+        assertThatCode(() -> swiftCodesService.addSwiftCodeData(swiftCodeData)).doesNotThrowAnyException();
     }
     
     @Test
-    public void whenSaveBankAndBankExists_thenThrowBankAlreadyExistsException() {
-        when(banksRepository.findById(bankItem.getSwiftCode())).thenReturn(Optional.of(bankItem));
+    public void whenSaveSwiftCodeDataAndSwiftCodeDataExists_thenThrowSwiftCodeAlreadyExistsException() {
+        when(swiftCodesRepository.findById(swiftCodeData.getSwiftCode())).thenReturn(Optional.of(swiftCodeData));
         
-        assertThatThrownBy(() -> swiftCodesService.addBank(bankItem))
-            .isInstanceOf(BankAlreadyExistsException.class);
+        assertThatThrownBy(() -> swiftCodesService.addSwiftCodeData(swiftCodeData))
+            .isInstanceOf(SwiftCodeAlreadyExistsException.class);
     }
     
     @Test
-    public void whenSaveBankAndBankDoesNotExistsAndCountryExistsAndHasNotHeadquarter_thenThrowHeadBankNotFoundException() {
-        BankItem branch = bankItem.toBuilder()
+    public void whenSaveSwiftCodeDataAndSwiftCodeDataDoesNotExistsAndCountryExistsAndHasNotHeadquarter_thenThrowHeadSwiftCodeNotFoundException() {
+        SwiftCodeItem branch = swiftCodeData.toBuilder()
             .swiftCode("ABCDEFGHABC")
             .headquarter(false)
             .build();
         
-        when(banksRepository.findById(branch.getSwiftCode())).thenReturn(Optional.empty());
+        when(swiftCodesRepository.findById(branch.getSwiftCode())).thenReturn(Optional.empty());
         when(countriesRepository.findById(branch.getCountryISO2().getCountryISO2())).thenReturn(Optional.of(countryPL));
-        when(banksRepository.save(branch)).thenReturn(branch);
-        when(banksRepository.findById(bankItem.getSwiftCode())).thenReturn(Optional.empty());
+        when(swiftCodesRepository.save(branch)).thenReturn(branch);
+        when(swiftCodesRepository.findById(swiftCodeData.getSwiftCode())).thenReturn(Optional.empty());
         
-        assertThatThrownBy(() -> swiftCodesService.addBank(branch))
-            .isInstanceOf(HeadBankNotFoundException.class);
+        assertThatThrownBy(() -> swiftCodesService.addSwiftCodeData(branch))
+            .isInstanceOf(HeadSwiftCodeNotFoundException.class);
     }
     
     @Test
-    public void whenGetBanksByCountryISO2AndCountryExists_thenReturnBanks() {
+    public void whenGetSwiftCodesByCountryISO2AndCountryExists_thenReturnSwiftCodeResponses() {
         when(countriesRepository.findById(countryPL.getCountryISO2())).thenReturn(Optional.of(countryPL));
-        when(banksRepository.findAllByCountryISO2_CountryISO2(countryPL.getCountryISO2())).thenReturn(List.of(bankResponse));
+        when(swiftCodesRepository.findAllByCountryISO2_CountryISO2(countryPL.getCountryISO2())).thenReturn(List.of(swiftCodeResponse));
         
         assertThatCode(() -> {
-            var banks = swiftCodesService.getBanksByCountryISO2(countryPL.getCountryISO2());
-            assertThat(banks.getSwiftCodes().size()).isEqualTo(1);
-            assertThat(banks.getSwiftCodes()).allSatisfy(bank -> assertThat(bank.getCountryISO2()).isEqualTo(countryPL.getCountryISO2()));
+            var swiftCodes = swiftCodesService.getSwiftCodesDataByCountryISO2(countryPL.getCountryISO2());
+            assertThat(swiftCodes.getSwiftCodes().size()).isEqualTo(1);
+            assertThat(swiftCodes.getSwiftCodes()).allSatisfy(bank -> assertThat(bank.getCountryISO2()).isEqualTo(countryPL.getCountryISO2()));
         }).doesNotThrowAnyException();
     }
     
     @Test
-    public void whenGetBanksByCountryISO2AndCountryDoesNotExists_thenThrowCountryNotExistsException() {
+    public void whenGetSwiftCodesByCountryISO2AndCountryDoesNotExists_thenThrowCountryNotExistsException() {
         when(countriesRepository.findById(countryPL.getCountryISO2())).thenReturn(Optional.empty());
         
-        assertThatThrownBy(() -> swiftCodesService.getBanksByCountryISO2(countryPL.getCountryISO2()))
+        assertThatThrownBy(() -> swiftCodesService.getSwiftCodesDataByCountryISO2(countryPL.getCountryISO2()))
             .isInstanceOf(CountryNotExistsException.class);
     }
     
     @Test
-    public void whenDeleteBankAndBankExists_thenDeleteBank() {
-        when(banksRepository.findById(bankItem.getSwiftCode())).thenReturn(Optional.of(bankItem));
+    public void whenDeleteSwiftCodeDataAndSwiftCodeDataExists_thenDeleteSwiftCodeData() {
+        when(swiftCodesRepository.findById(swiftCodeData.getSwiftCode())).thenReturn(Optional.of(swiftCodeData));
         
-        assertThatCode(() -> swiftCodesService.deleteBank(bankItem.getSwiftCode())).doesNotThrowAnyException();
+        assertThatCode(() -> swiftCodesService.deleteSwiftCodeData(swiftCodeData.getSwiftCode())).doesNotThrowAnyException();
     }
     
     @Test
-    public void whenDeleteBankAndBankDoesNotExists_thenThrowBankNotFoundException() {
-        when(banksRepository.findById(bankItem.getSwiftCode())).thenReturn(Optional.empty());
+    public void whenDeleteSwiftCodeDataAndSwiftCodeDataDoesNotExists_thenThrowSwiftCodeNotFoundException() {
+        when(swiftCodesRepository.findById(swiftCodeData.getSwiftCode())).thenReturn(Optional.empty());
         
-        assertThatThrownBy(() -> swiftCodesService.deleteBank(bankItem.getSwiftCode()))
-            .isInstanceOf(BankNotFoundException.class);
+        assertThatThrownBy(() -> swiftCodesService.deleteSwiftCodeData(swiftCodeData.getSwiftCode()))
+            .isInstanceOf(SwiftCodeNotFoundException.class);
     }
     
     @Test
-    public void whenDeleteBankAndBankHasBranches_thenThrowChildBranchesFoundException() {
-        BankItem branch = bankItem.toBuilder()
+    public void whenDeleteSwiftCodeDataAndSwiftCodeHasBranches_thenThrowChildSwiftCodesFoundException() {
+        SwiftCodeItem branch = swiftCodeData.toBuilder()
             .swiftCode("ABCDEFGHABC")
             .headquarter(false)
             .build();
         
-        bankItem.getBranches().add(branch);
+        swiftCodeData.getBranches().add(branch);
         
-        when(banksRepository.findById(bankItem.getSwiftCode())).thenReturn(Optional.of(bankItem));
+        when(swiftCodesRepository.findById(swiftCodeData.getSwiftCode())).thenReturn(Optional.of(swiftCodeData));
         
-        assertThatThrownBy(() -> swiftCodesService.deleteBank(bankItem.getSwiftCode()))
-            .isInstanceOf(ChildBranchesFoundException.class);
+        assertThatThrownBy(() -> swiftCodesService.deleteSwiftCodeData(swiftCodeData.getSwiftCode()))
+            .isInstanceOf(ChildSwiftCodesFoundException.class);
     }
 }

@@ -1,16 +1,16 @@
 package io.github.kappa243.remitly2025;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.kappa243.remitly2025.controllers.BankRequest;
-import io.github.kappa243.remitly2025.controllers.BankResponse;
-import io.github.kappa243.remitly2025.controllers.CountryBanksResponse;
+import io.github.kappa243.remitly2025.controllers.SwiftCodeRequest;
+import io.github.kappa243.remitly2025.controllers.SwiftCodeResponse;
+import io.github.kappa243.remitly2025.controllers.CountrySwiftCodesResponse;
 import io.github.kappa243.remitly2025.controllers.SwiftCodesController;
-import io.github.kappa243.remitly2025.exceptions.BankAlreadyExistsException;
-import io.github.kappa243.remitly2025.exceptions.BankNotFoundException;
-import io.github.kappa243.remitly2025.exceptions.ChildBranchesFoundException;
+import io.github.kappa243.remitly2025.exceptions.SwiftCodeAlreadyExistsException;
+import io.github.kappa243.remitly2025.exceptions.SwiftCodeNotFoundException;
+import io.github.kappa243.remitly2025.exceptions.ChildSwiftCodesFoundException;
 import io.github.kappa243.remitly2025.exceptions.CountryNotExistsException;
-import io.github.kappa243.remitly2025.exceptions.HeadBankNotFoundException;
-import io.github.kappa243.remitly2025.model.BankItem;
+import io.github.kappa243.remitly2025.exceptions.HeadSwiftCodeNotFoundException;
+import io.github.kappa243.remitly2025.model.SwiftCodeItem;
 import io.github.kappa243.remitly2025.model.CountryItem;
 import io.github.kappa243.remitly2025.services.SwiftCodesService;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,7 +26,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -55,7 +54,7 @@ public class SwiftCodesControllerTests {
     ProjectionFactory projectionFactory;
     
     CountryItem countryPL = new CountryItem("PL", "POLAND");
-    BankItem bankItem = BankItem.builder()
+    SwiftCodeItem swiftCodeData = SwiftCodeItem.builder()
         .swiftCode("ABCDEFGHXXX")
         .name("MAIN STREET BANK")
         .address("1234 Main St")
@@ -63,35 +62,35 @@ public class SwiftCodesControllerTests {
         .headquarter(true)
         .build();
     
-    BankRequest bankRequest = BankRequest.builder()
-        .swiftCode(bankItem.getSwiftCode())
-        .name(bankItem.getName())
-        .address(bankItem.getAddress())
+    SwiftCodeRequest swiftCodeRequest = SwiftCodeRequest.builder()
+        .swiftCode(swiftCodeData.getSwiftCode())
+        .name(swiftCodeData.getName())
+        .address(swiftCodeData.getAddress())
         .countryISO2(countryPL.getCountryISO2())
         .countryName(countryPL.getCountryName())
-        .headquarter(bankItem.isHeadquarter())
+        .headquarter(swiftCodeData.isHeadquarter())
         .build();
     
-    BankResponse bankResponse;
+    SwiftCodeResponse swiftCodeResponse;
     
     @BeforeEach
     public void beforeEach() {
-        bankResponse = projectionFactory.createProjection(BankResponse.class, bankItem);
+        swiftCodeResponse = projectionFactory.createProjection(SwiftCodeResponse.class, swiftCodeData);
     }
     
     @Test
     public void whenGetCode_thenOk() throws Exception {
-        when(swiftCodesService.getBankBySwiftCode(bankItem.getSwiftCode())).thenReturn(bankResponse);
+        when(swiftCodesService.getSwiftCodeDataBySwiftCode(swiftCodeData.getSwiftCode())).thenReturn(swiftCodeResponse);
         
-        mockMvc.perform(get(PATH + "/{swiftCode}", bankItem.getSwiftCode()))
+        mockMvc.perform(get(PATH + "/{swiftCode}", swiftCodeData.getSwiftCode()))
             .andExpect(status().isOk())
-            .andExpect(content().json(objectMapper.writeValueAsString(bankResponse)));
+            .andExpect(content().json(objectMapper.writeValueAsString(swiftCodeResponse)));
     }
     
     @Test
-    public void whenGetNonexistentCode_thenNotFound() throws Exception {
+    public void whenGetNonExistentCode_thenNotFound() throws Exception {
         String swiftCode = "ABCDEFGHIJK";
-        when(swiftCodesService.getBankBySwiftCode(swiftCode)).thenThrow(new BankNotFoundException());
+        when(swiftCodesService.getSwiftCodeDataBySwiftCode(swiftCode)).thenThrow(new SwiftCodeNotFoundException());
         
         mockMvc.perform(get(PATH + "/{swiftCode}", swiftCode))
             .andExpect(status().isNotFound());
@@ -118,26 +117,26 @@ public class SwiftCodesControllerTests {
     }
     
     @Test
-    public void whenPostBank_thenCreated() throws Exception {
-        when(swiftCodesService.addBank(bankItem)).thenReturn(bankResponse);
+    public void whenPostSwiftCodeData_thenCreated() throws Exception {
+        when(swiftCodesService.addSwiftCodeData(swiftCodeData)).thenReturn(swiftCodeResponse);
         
         mockMvc.perform(post(PATH + "/")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(bankRequest)))
+                .content(objectMapper.writeValueAsString(swiftCodeRequest)))
             .andExpect(status().isCreated())
             .andExpect(content().string(containsString("ok")));
     }
     
     @Test
-    public void whenPostBankAndInvalidRequest_thenBadRequest() throws Exception {
-        BankRequest invalidBankRequest = bankRequest.toBuilder()
+    public void whenPostSwiftCodeDataAndInvalidRequest_thenBadRequest() throws Exception {
+        SwiftCodeRequest invalidSwiftCodeRequest = swiftCodeRequest.toBuilder()
             .swiftCode("AAA")
             .name("Main street bank")
             .build();
         
         mockMvc.perform(post(PATH + "/")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(invalidBankRequest)))
+                .content(objectMapper.writeValueAsString(invalidSwiftCodeRequest)))
             .andExpect(status().isBadRequest())
             .andExpect(content().string(containsString("Validation Error")))
             .andExpect(content().string(containsString("Invalid code length")))
@@ -145,98 +144,98 @@ public class SwiftCodesControllerTests {
     }
     
     @Test
-    public void whenPostBankAndInvalidHeadquarterPattern_thenBadRequest() throws Exception {
-        BankRequest invalidBankRequest = bankRequest.toBuilder()
+    public void whenPostSwiftCodeRequestAndInvalidHeadquarterPattern_thenBadRequest() throws Exception {
+        SwiftCodeRequest invalidSwiftCodeRequest = swiftCodeRequest.toBuilder()
             .swiftCode("ABCDEFGHABC")
             .build();
         
         mockMvc.perform(post(PATH + "/")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(invalidBankRequest)))
+                .content(objectMapper.writeValueAsString(invalidSwiftCodeRequest)))
             .andExpect(status().isBadRequest())
             .andExpect(content().string(containsString("Validation Error")))
             .andExpect(content().string(containsString("SWIFT code does not match")));
     }
     
     @Test
-    public void whenPostBankAndBankExists_thenConflict() throws Exception {
-        when(swiftCodesService.addBank(bankItem)).thenThrow(new BankAlreadyExistsException());
+    public void whenPostSwiftCodeRequestAndBankExists_thenConflict() throws Exception {
+        when(swiftCodesService.addSwiftCodeData(swiftCodeData)).thenThrow(new SwiftCodeAlreadyExistsException());
         
         mockMvc.perform(post(PATH + "/")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(bankRequest)))
+                .content(objectMapper.writeValueAsString(swiftCodeRequest)))
             .andExpect(status().isConflict());
     }
     
     @Test
-    public void whenPostBankAndHeadquarterNotFound_thenConflict() throws Exception {
-        BankRequest branchBankRequest = bankRequest.toBuilder()
-            .swiftCode(bankRequest.getSwiftCode().substring(0, 8) + "ABC")
+    public void whenPostSwiftCodeRequestAndHeadquarterNotFound_thenConflict() throws Exception {
+        SwiftCodeRequest branchSwiftCodeRequest = swiftCodeRequest.toBuilder()
+            .swiftCode(swiftCodeRequest.getSwiftCode().substring(0, 8) + "ABC")
             .headquarter(false)
             .build();
         
-        BankItem branchBankItem = bankItem.toBuilder()
-            .swiftCode(branchBankRequest.getSwiftCode())
+        SwiftCodeItem branchSwiftCodeData = swiftCodeData.toBuilder()
+            .swiftCode(branchSwiftCodeRequest.getSwiftCode())
             .headquarter(false)
             .build();
         
-        when(swiftCodesService.addBank(branchBankItem)).thenReturn(bankResponse);
+        when(swiftCodesService.addSwiftCodeData(branchSwiftCodeData)).thenReturn(swiftCodeResponse);
         
-        when(swiftCodesService.addBank(branchBankItem)).thenThrow(new HeadBankNotFoundException());
+        when(swiftCodesService.addSwiftCodeData(branchSwiftCodeData)).thenThrow(new HeadSwiftCodeNotFoundException());
         
         mockMvc.perform(post(PATH + "/")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(branchBankRequest)))
+                .content(objectMapper.writeValueAsString(branchSwiftCodeRequest)))
             .andExpect(status().isConflict());
     }
     
     @Test
-    public void whenGetBanksByCountryISO2_thenOk() throws Exception {
+    public void whenGetSwiftCodesByCountryISO2_thenOk() throws Exception {
         String countryISO2 = countryPL.getCountryISO2();
         
-        CountryBanksResponse countryBanksResponse = CountryBanksResponse.builder()
+        CountrySwiftCodesResponse countrySwiftCodesResponse = CountrySwiftCodesResponse.builder()
             .countryISO2(countryISO2)
             .countryName(countryPL.getCountryName())
-            .swiftCodes(List.of(bankResponse))
+            .swiftCodes(List.of(swiftCodeResponse))
             .build();
         
-        when(swiftCodesService.getBanksByCountryISO2(countryISO2)).thenReturn(countryBanksResponse);
+        when(swiftCodesService.getSwiftCodesDataByCountryISO2(countryISO2)).thenReturn(countrySwiftCodesResponse);
         
         mockMvc.perform(get(PATH + "/country/{countryISO2code}", countryISO2))
             .andExpect(status().isOk())
-            .andExpect(content().json(objectMapper.writeValueAsString(countryBanksResponse)));
+            .andExpect(content().json(objectMapper.writeValueAsString(countrySwiftCodesResponse)));
     }
     
     @Test
-    public void whenGetBanksByCountryISO2AndCountryDoesNotExists_thenNotFound() throws Exception {
+    public void whenGetSwiftCodesByCountryISO2AndCountryDoesNotExists_thenNotFound() throws Exception {
         String countryISO2 = "PL";
-        when(swiftCodesService.getBanksByCountryISO2(countryISO2)).thenThrow(new CountryNotExistsException());
+        when(swiftCodesService.getSwiftCodesDataByCountryISO2(countryISO2)).thenThrow(new CountryNotExistsException());
         
         mockMvc.perform(get(PATH + "/country/{countryISO2code}", countryISO2))
             .andExpect(status().isNotFound());
     }
     
     @Test
-    public void whenDeleteBank_thenOk() throws Exception {
-        String swiftCode = bankItem.getSwiftCode();
+    public void whenDeleteCode_thenOk() throws Exception {
+        String swiftCode = swiftCodeData.getSwiftCode();
         
         mockMvc.perform(delete(PATH + "/{swiftCode}", swiftCode))
             .andExpect(status().isOk());
     }
     
     @Test
-    public void whenDeleteBankAndBankDoesNotExists_thenNotFound() throws Exception {
+    public void whenDeleteCodeAndSwiftCodeDataDoesNotExists_thenNotFound() throws Exception {
         String swiftCode = "ABCDEFGHIJK";
-        doThrow(new BankNotFoundException()).when(swiftCodesService).deleteBank(swiftCode);
+        doThrow(new SwiftCodeNotFoundException()).when(swiftCodesService).deleteSwiftCodeData(swiftCode);
         
         mockMvc.perform(delete(PATH + "/{swiftCode}", swiftCode))
             .andExpect(status().isNotFound());
     }
     
     @Test
-    public void whenDeleteBankAndChildBranchesFound_thenConflict() throws Exception {
-        String swiftCode = bankItem.getSwiftCode();
-        doThrow(new ChildBranchesFoundException()).when(swiftCodesService).deleteBank(swiftCode);
+    public void whenDeleteCodeAndChildSwiftCodesFound_thenConflict() throws Exception {
+        String swiftCode = swiftCodeData.getSwiftCode();
+        doThrow(new ChildSwiftCodesFoundException()).when(swiftCodesService).deleteSwiftCodeData(swiftCode);
         
         mockMvc.perform(delete(PATH + "/{swiftCode}", swiftCode))
             .andExpect(status().isConflict());

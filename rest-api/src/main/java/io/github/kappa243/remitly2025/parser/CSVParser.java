@@ -3,8 +3,8 @@ package io.github.kappa243.remitly2025.parser;
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
-import io.github.kappa243.remitly2025.model.BankItem;
 import io.github.kappa243.remitly2025.model.CountryItem;
+import io.github.kappa243.remitly2025.model.SwiftCodeItem;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -24,30 +24,30 @@ import java.util.stream.Collectors;
 @Slf4j
 public class CSVParser {
     
-    private Pair<CountryItem, BankItem> mapEntry(BankCSVEntry entry) {
+    private Pair<CountryItem, SwiftCodeItem> mapEntry(BankCSVEntry entry) {
         CountryItem countryItem = CountryItem.builder()
             .countryISO2(entry.getCountryISO2())
             .countryName(entry.getCountryName())
             .build();
         
-        BankItem bankItem = BankItem.builder()
+        SwiftCodeItem swiftCodeItem = SwiftCodeItem.builder()
             .swiftCode(entry.getSwiftCode())
             .name(entry.getName().trim().toUpperCase())
             .address(entry.getAddress().trim().toUpperCase())
             .countryISO2(countryItem)
             .build();
         
-        return Pair.of(countryItem, bankItem);
+        return Pair.of(countryItem, swiftCodeItem);
     }
     
-    public Pair<Set<CountryItem>, Set<BankItem>> parseCSV() throws IOException {
+    public Pair<Set<CountryItem>, Set<SwiftCodeItem>> parseCSV() throws IOException {
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         Resource csvResource = resolver.getResource("swift_codes.csv");
         
         Set<CountryItem> countries = new HashSet<>();
-        Set<BankItem> banks = new HashSet<>();
+        Set<SwiftCodeItem> swiftCodes = new HashSet<>();
         
-        Map<String, BankItem> headBanks = new HashMap<>();
+        Map<String, SwiftCodeItem> headSwiftCodes = new HashMap<>();
         
         CsvMapper mapper = new CsvMapper();
         CsvSchema schema = mapper
@@ -69,7 +69,7 @@ public class CSVParser {
             headEntries.forEach(entry -> {
                 var mapped = mapEntry(entry);
                 
-                BankItem bankItem = mapped.getSecond().toBuilder()
+                SwiftCodeItem swiftCodeItem = mapped.getSecond().toBuilder()
                     .headquarter(true)
                     .branches(new ArrayList<>())
                     .build();
@@ -77,32 +77,32 @@ public class CSVParser {
                 String swiftInit = entry.getSwiftCode().substring(0, 8);
                 
                 countries.add(mapped.getFirst());
-                banks.add(bankItem);
-                headBanks.put(swiftInit, bankItem);
+                swiftCodes.add(swiftCodeItem);
+                headSwiftCodes.put(swiftInit, swiftCodeItem);
             });
             
             branchEntries.forEach(entry -> {
                 var mapped = mapEntry(entry);
                 
-                BankItem bankItem = mapped.getSecond().toBuilder()
+                SwiftCodeItem swiftCodeItem = mapped.getSecond().toBuilder()
                     .headquarter(false)
                     .build();
                 
                 String swiftInit = entry.getSwiftCode().substring(0, 8);
-                BankItem headBank = headBanks.get(swiftInit);
+                SwiftCodeItem headBank = headSwiftCodes.get(swiftInit);
                 
                 if (headBank == null) {
-                    log.warn("Detected branch without head bank: {}", entry.getSwiftCode() + "  Skipping.");
+                    log.warn("Detected branch without head SWIFT code: {}", entry.getSwiftCode() + "  Skipping.");
                     return;
                 } else {
-                    headBank.getBranches().add(bankItem);
+                    headBank.getBranches().add(swiftCodeItem);
                 }
                 
                 countries.add(mapped.getFirst());
-                banks.add(bankItem);
+                swiftCodes.add(swiftCodeItem);
             });
         }
         
-        return Pair.of(countries, banks);
+        return Pair.of(countries, swiftCodes);
     }
 }

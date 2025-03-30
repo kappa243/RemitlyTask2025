@@ -18,22 +18,22 @@ import java.util.stream.Collectors;
 @ControllerAdvice
 public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
     
-    @ExceptionHandler(BankNotFoundException.class)
+    @ExceptionHandler(SwiftCodeNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseEntity<String> handleBankNotFound(BankNotFoundException e, WebRequest wr) {
-        return new ResponseEntity<>("Bank not found", HttpStatus.NOT_FOUND);
+    public ResponseEntity<String> handleBankNotFound(SwiftCodeNotFoundException e, WebRequest wr) {
+        return new ResponseEntity<>("SWIFT code not found", HttpStatus.NOT_FOUND);
     }
     
-    @ExceptionHandler(BankAlreadyExistsException.class)
+    @ExceptionHandler(SwiftCodeAlreadyExistsException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ResponseEntity<String> handleBankAlreadyExists(BankAlreadyExistsException e, WebRequest wr) {
-        return new ResponseEntity<>("Bank already exists", HttpStatus.CONFLICT);
+    public ResponseEntity<String> handleBankAlreadyExists(SwiftCodeAlreadyExistsException e, WebRequest wr) {
+        return new ResponseEntity<>("SWIFT code already exists", HttpStatus.CONFLICT);
     }
     
-    @ExceptionHandler(HeadBankNotFoundException.class)
+    @ExceptionHandler(HeadSwiftCodeNotFoundException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ResponseEntity<String> handleHeadBankNotFound(HeadBankNotFoundException e, WebRequest wr) {
-        return new ResponseEntity<>("Headquarter bank does not exists.", HttpStatus.CONFLICT);
+    public ResponseEntity<String> handleHeadBankNotFound(HeadSwiftCodeNotFoundException e, WebRequest wr) {
+        return new ResponseEntity<>("Headquarter SWIFT code does not exists.", HttpStatus.CONFLICT);
     }
     
     @ExceptionHandler(CountryNotExistsException.class)
@@ -42,10 +42,10 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>("Country does not exists", HttpStatus.NOT_FOUND);
     }
     
-    @ExceptionHandler(ChildBranchesFoundException.class)
+    @ExceptionHandler(ChildSwiftCodesFoundException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ResponseEntity<String> handleChildBranchesFound(ChildBranchesFoundException e, WebRequest wr) {
-        return new ResponseEntity<>("Child branches found for given headquarter", HttpStatus.CONFLICT);
+    public ResponseEntity<String> handleChildBranchesFound(ChildSwiftCodesFoundException e, WebRequest wr) {
+        return new ResponseEntity<>("Child branches found for given SWIFT code", HttpStatus.CONFLICT);
     }
     
     @ExceptionHandler(ConstraintViolationException.class)

@@ -1,10 +1,10 @@
 package io.github.kappa243.remitly2025;
 
-import io.github.kappa243.remitly2025.model.BankItem;
 import io.github.kappa243.remitly2025.model.CountryItem;
+import io.github.kappa243.remitly2025.model.SwiftCodeItem;
 import io.github.kappa243.remitly2025.parser.CSVParser;
-import io.github.kappa243.remitly2025.repositories.BanksRepository;
 import io.github.kappa243.remitly2025.repositories.CountriesRepository;
+import io.github.kappa243.remitly2025.repositories.SwiftCodesRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -24,7 +24,7 @@ import java.util.Set;
 @Slf4j
 public class DatabaseInitializer implements CommandLineRunner {
     
-    private final BanksRepository banksRepository;
+    private final SwiftCodesRepository swiftCodesRepository;
     private final CountriesRepository countriesRepository;
     
     private final MongoTemplate mongoTemplate;
@@ -35,14 +35,14 @@ public class DatabaseInitializer implements CommandLineRunner {
     public void run(String... args) {
 //        if (!mongoTemplate.collectionExists(BankItem.class) || !mongoTemplate.collectionExists(CountryItem.class)) {
         // clear all data
-        mongoTemplate.dropCollection(BankItem.class);
+        mongoTemplate.dropCollection(SwiftCodeItem.class);
         mongoTemplate.dropCollection(CountryItem.class);
         
-        mongoTemplate.indexOps(BankItem.class).ensureIndex(new Index().on("countryISO2", Sort.Direction.ASC).named("countryISO2_"));
+        mongoTemplate.indexOps(SwiftCodeItem.class).ensureIndex(new Index().on("countryISO2", Sort.Direction.ASC).named("countryISO2_"));
         
         log.info("Initializing database with csv data");
         
-        Pair<Set<CountryItem>, Set<BankItem>> entries = null;
+        Pair<Set<CountryItem>, Set<SwiftCodeItem>> entries = null;
         try {
             entries = bankCSVParser.parseCSV();
             
@@ -54,7 +54,7 @@ public class DatabaseInitializer implements CommandLineRunner {
         
         if (entries != null) {
             countriesRepository.saveAll(entries.getFirst());
-            banksRepository.saveAll(entries.getSecond());
+            swiftCodesRepository.saveAll(entries.getSecond());
         }
 //        }
     }

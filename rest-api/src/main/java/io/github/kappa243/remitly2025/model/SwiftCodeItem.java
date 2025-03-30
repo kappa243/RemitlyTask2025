@@ -19,13 +19,13 @@ import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.util.List;
 
-@Document(collection = "banks")
+@Document(collection = "swiftcodes")
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
 @Builder(toBuilder = true)
-public class BankItem {
+public class SwiftCodeItem {
     
     @Id
     @SwiftCode
@@ -50,9 +50,9 @@ public class BankItem {
     
     @DBRef
     @Setter
-    private List<BankItem> branches;
+    private List<SwiftCodeItem> branches;
     
-    public BankItem(String swiftCode, String name, String address, boolean headquarter, CountryItem countryISO2) {
+    public SwiftCodeItem(String swiftCode, String name, String address, boolean headquarter, CountryItem countryISO2) {
         this.swiftCode = swiftCode;
         this.name = name;
         this.address = address;

@@ -1,13 +1,13 @@
 package io.github.kappa243.remitly2025.controllers;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.github.kappa243.remitly2025.model.BankItem;
+import io.github.kappa243.remitly2025.model.SwiftCodeItem;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.rest.core.config.Projection;
 
 
-@Projection(name = "reducedBankResponse", types = {BankItem.class})
-public interface ReducedBankResponse {
+@Projection(name = "reducedSwiftCodeResponse", types = {SwiftCodeItem.class})
+public interface ReducedSwiftCodeResponse {
     String getSwiftCode();
     
     String getName();

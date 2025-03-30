@@ -1,16 +1,16 @@
 package io.github.kappa243.remitly2025.services;
 
-import io.github.kappa243.remitly2025.controllers.BankResponse;
-import io.github.kappa243.remitly2025.controllers.CountryBanksResponse;
-import io.github.kappa243.remitly2025.exceptions.BankAlreadyExistsException;
-import io.github.kappa243.remitly2025.exceptions.BankNotFoundException;
-import io.github.kappa243.remitly2025.exceptions.ChildBranchesFoundException;
+import io.github.kappa243.remitly2025.controllers.CountrySwiftCodesResponse;
+import io.github.kappa243.remitly2025.controllers.SwiftCodeResponse;
+import io.github.kappa243.remitly2025.exceptions.ChildSwiftCodesFoundException;
 import io.github.kappa243.remitly2025.exceptions.CountryNotExistsException;
-import io.github.kappa243.remitly2025.exceptions.HeadBankNotFoundException;
-import io.github.kappa243.remitly2025.model.BankItem;
+import io.github.kappa243.remitly2025.exceptions.HeadSwiftCodeNotFoundException;
+import io.github.kappa243.remitly2025.exceptions.SwiftCodeAlreadyExistsException;
+import io.github.kappa243.remitly2025.exceptions.SwiftCodeNotFoundException;
 import io.github.kappa243.remitly2025.model.CountryItem;
-import io.github.kappa243.remitly2025.repositories.BanksRepository;
+import io.github.kappa243.remitly2025.model.SwiftCodeItem;
 import io.github.kappa243.remitly2025.repositories.CountriesRepository;
+import io.github.kappa243.remitly2025.repositories.SwiftCodesRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.stereotype.Service;
@@ -22,99 +22,85 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class SwiftCodesServiceImpl implements SwiftCodesService {
     
-    private final BanksRepository banksRepository;
+    private final SwiftCodesRepository swiftCodesRepository;
     private final CountriesRepository countriesRepository;
     
     private final ProjectionFactory projectionFactory;
     
     
     @Override
-    public BankResponse getBankBySwiftCode(String swiftCode) throws BankNotFoundException {
-        Optional<BankResponse> response = banksRepository.findBySwiftCode(swiftCode);
-        
-        if (response.isEmpty())
-            throw new BankNotFoundException();
-        
-        return response.get();
+    public SwiftCodeResponse getSwiftCodeDataBySwiftCode(String swiftCode) throws SwiftCodeNotFoundException {
+        return swiftCodesRepository.findBySwiftCode(swiftCode)
+            .orElseThrow(SwiftCodeNotFoundException::new);
     }
     
     @Override
-    public BankResponse addBank(BankItem bank) throws BankAlreadyExistsException, HeadBankNotFoundException {
+    public SwiftCodeResponse addSwiftCodeData(SwiftCodeItem swiftCodeItem) throws SwiftCodeAlreadyExistsException, HeadSwiftCodeNotFoundException {
         // check if bank already exists
-        Optional<BankItem> existingBank = banksRepository.findById(bank.getSwiftCode());
-        
-        if (existingBank.isPresent())
-            throw new BankAlreadyExistsException();
+        swiftCodesRepository.findById(swiftCodeItem.getSwiftCode()).ifPresent(sc -> {
+            throw new SwiftCodeAlreadyExistsException();
+        });
         
         // check if country exists
-        Optional<CountryItem> country = countriesRepository.findById(bank.getCountryISO2().getCountryISO2());
-        
+        Optional<CountryItem> country = countriesRepository.findById(swiftCodeItem.getCountryISO2().getCountryISO2());
         if (country.isEmpty())
-            countriesRepository.save(bank.getCountryISO2());
+            countriesRepository.save(swiftCodeItem.getCountryISO2());
         
         // country requirements were not provided in task;
         // we assume that country code is unique and is final after creation (dict)
         
-        BankItem createdBank;
+        SwiftCodeItem createdSwiftCodeData;
         
-        if (!bank.isHeadquarter()) {
-            String headSwiftCode = bank.getSwiftCode().substring(0, 8) + "XXX";
-            Optional<BankItem> headBank = banksRepository.findById(headSwiftCode);
+        if (!swiftCodeItem.isHeadquarter()) {
+            String headSwiftCode = swiftCodeItem.getSwiftCode().substring(0, 8) + "XXX";
+            Optional<SwiftCodeItem> headSwiftCodeData = swiftCodesRepository.findById(headSwiftCode);
             
-            if (headBank.isEmpty()) {
-                throw new HeadBankNotFoundException();
+            if (headSwiftCodeData.isEmpty()) {
+                throw new HeadSwiftCodeNotFoundException();
             }
             
-            headBank.get().getBranches().add(bank);
+            headSwiftCodeData.get().getBranches().add(swiftCodeItem);
             
-            createdBank = banksRepository.save(bank);
-            banksRepository.save(headBank.get());
+            createdSwiftCodeData = swiftCodesRepository.save(swiftCodeItem);
+            swiftCodesRepository.save(headSwiftCodeData.get());
         } else {
-            if (bank.getBranches() == null) {
-                bank.setBranches(Collections.emptyList());
+            if (swiftCodeItem.getBranches() == null) {
+                swiftCodeItem.setBranches(Collections.emptyList());
             }
             
-            createdBank = banksRepository.save(bank);
+            createdSwiftCodeData = swiftCodesRepository.save(swiftCodeItem);
         }
         
-        return projectionFactory.createProjection(BankResponse.class, createdBank);
+        return projectionFactory.createProjection(SwiftCodeResponse.class, createdSwiftCodeData);
     }
     
     
     private CountryItem getCountryByCountryISO2(String countryISO2) throws CountryNotExistsException {
-        Optional<CountryItem> countryItem = countriesRepository.findById(countryISO2);
-        
-        if (countryItem.isEmpty())
-            throw new CountryNotExistsException();
-        
-        return countryItem.get();
+        return countriesRepository.findById(countryISO2)
+            .orElseThrow(CountryNotExistsException::new);
     }
     
     @Override
-    public CountryBanksResponse getBanksByCountryISO2(String countryISO2) throws CountryNotExistsException {
-        CountryItem countryItem = getCountryByCountryISO2(countryISO2);
+    public CountrySwiftCodesResponse getSwiftCodesDataByCountryISO2(String countryISO2) throws CountryNotExistsException {
+        CountryItem countryData = getCountryByCountryISO2(countryISO2);
         
-        return CountryBanksResponse.builder()
-            .countryISO2(countryItem.getCountryISO2())
-            .countryName(countryItem.getCountryName())
-            .swiftCodes(banksRepository.findAllByCountryISO2_CountryISO2(countryItem.getCountryISO2()))
+        return CountrySwiftCodesResponse.builder()
+            .countryISO2(countryData.getCountryISO2())
+            .countryName(countryData.getCountryName())
+            .swiftCodes(swiftCodesRepository.findAllByCountryISO2_CountryISO2(countryData.getCountryISO2()))
             .build();
     }
     
     @Override
-    public void deleteBank(String swiftCode) throws BankNotFoundException, ChildBranchesFoundException {
-        Optional<BankItem> bank = banksRepository.findById(swiftCode);
+    public void deleteSwiftCodeData(String swiftCode) throws SwiftCodeNotFoundException, ChildSwiftCodesFoundException {
+        SwiftCodeItem swiftCodeData = swiftCodesRepository.findById(swiftCode)
+            .orElseThrow(SwiftCodeNotFoundException::new);
         
-        if (bank.isEmpty())
-            throw new BankNotFoundException();
-        
-        BankItem bankItem = bank.get();
-        
-        if (bankItem.isHeadquarter() && !bankItem.getBranches().isEmpty()) {
-            throw new ChildBranchesFoundException();
+        if (swiftCodeData.isHeadquarter() && !swiftCodeData.getBranches().isEmpty()) {
+            throw new ChildSwiftCodesFoundException();
         }
         
-        banksRepository.delete(bank.get());
+        swiftCodesRepository.delete(swiftCodeData);
     }
     
 }

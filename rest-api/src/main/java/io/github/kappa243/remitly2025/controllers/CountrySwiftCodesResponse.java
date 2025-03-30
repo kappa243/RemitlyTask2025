@@ -14,7 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CountryBanksResponse {
+public class CountrySwiftCodesResponse {
     
     @NotEmpty
     @CountryCode
@@ -24,5 +24,5 @@ public class CountryBanksResponse {
     private String countryName;
     
     @NotNull
-    private List<ReducedBankResponse> swiftCodes;
+    private List<ReducedSwiftCodeResponse> swiftCodes;
 }
