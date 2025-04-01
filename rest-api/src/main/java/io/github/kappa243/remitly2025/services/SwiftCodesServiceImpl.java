@@ -74,20 +74,15 @@ public class SwiftCodesServiceImpl implements SwiftCodesService {
         return projectionFactory.createProjection(SwiftCodeResponse.class, createdSwiftCodeData);
     }
     
-    
-    private CountryItem getCountryByCountryISO2(String countryISO2) throws CountryNotExistsException {
-        return countriesRepository.findById(countryISO2)
-            .orElseThrow(CountryNotExistsException::new);
-    }
-    
     @Override
     public CountrySwiftCodesResponse getSwiftCodesDataByCountryISO2(String countryISO2) throws CountryNotExistsException {
-        CountryItem countryData = getCountryByCountryISO2(countryISO2);
+        CountryItem countryData = countriesRepository.findById(countryISO2)
+            .orElseThrow(CountryNotExistsException::new);
         
         return CountrySwiftCodesResponse.builder()
             .countryISO2(countryData.getCountryISO2())
             .countryName(countryData.getCountryName())
-            .swiftCodes(swiftCodesRepository.findAllByCountryISO2_CountryISO2(countryData.getCountryISO2()))
+            .swiftCodes(swiftCodesRepository.findAllByCountryISO2(countryData))
             .build();
     }
     

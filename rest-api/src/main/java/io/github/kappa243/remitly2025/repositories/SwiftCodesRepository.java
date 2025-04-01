@@ -2,6 +2,7 @@ package io.github.kappa243.remitly2025.repositories;
 
 import io.github.kappa243.remitly2025.controllers.ReducedSwiftCodeResponse;
 import io.github.kappa243.remitly2025.controllers.SwiftCodeResponse;
+import io.github.kappa243.remitly2025.model.CountryItem;
 import io.github.kappa243.remitly2025.model.SwiftCodeItem;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
@@ -12,5 +13,5 @@ public interface SwiftCodesRepository extends MongoRepository<SwiftCodeItem, Str
     
     Optional<SwiftCodeResponse> findBySwiftCode(String swiftCode);
     
-    List<ReducedSwiftCodeResponse> findAllByCountryISO2_CountryISO2(String countryISO2CountryISO2);
+    List<ReducedSwiftCodeResponse> findAllByCountryISO2(CountryItem countryISO2);
 }

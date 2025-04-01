@@ -70,12 +70,8 @@ public class SwiftCodesRepositoryTests extends BaseTestModule {
     public void whenSaveSwiftCodeData_thenSwiftCodeDataExists() {
         int size = swiftCodesRepository.findAll().size();
         
-        System.out.println(swiftCodesRepository.findAll().stream().map(SwiftCodeItem::getSwiftCode).toList());
-        
         swiftCodesRepository.save(swiftCodeData);
         
-        
-        System.out.println(swiftCodesRepository.findAll().stream().map(SwiftCodeItem::getSwiftCode).toList());
         assertThat(swiftCodesRepository.findAll().size()).isEqualTo(size + 1);
         
         Optional<SwiftCodeItem> savedSwiftCodeData = swiftCodesRepository.findById(swiftCodeData.getSwiftCode());
@@ -135,7 +131,7 @@ public class SwiftCodesRepositoryTests extends BaseTestModule {
     
     @Test
     public void whenFindSwiftCodesByCountryISO2_thenReturnReducedSwiftCodeResponses() {
-        List<ReducedSwiftCodeResponse> savedSwiftCodeResponses = swiftCodesRepository.findAllByCountryISO2_CountryISO2(countryPL.getCountryISO2());
+        List<ReducedSwiftCodeResponse> savedSwiftCodeResponses = swiftCodesRepository.findAllByCountryISO2(countryPL);
         
         assertThat(savedSwiftCodeResponses).isNotEmpty();
         assertThat(savedSwiftCodeResponses.size()).isEqualTo(3);

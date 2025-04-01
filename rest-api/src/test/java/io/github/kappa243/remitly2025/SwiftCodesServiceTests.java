@@ -134,7 +134,7 @@ public class SwiftCodesServiceTests extends BaseTestModule {
     @Test
     public void whenGetSwiftCodesByCountryISO2AndCountryExists_thenReturnSwiftCodeResponses() {
         when(countriesRepository.findById(countryPL.getCountryISO2())).thenReturn(Optional.of(countryPL));
-        when(swiftCodesRepository.findAllByCountryISO2_CountryISO2(countryPL.getCountryISO2())).thenReturn(List.of(swiftCodeResponse));
+        when(swiftCodesRepository.findAllByCountryISO2(countryPL)).thenReturn(List.of(swiftCodeResponse));
         
         assertThatCode(() -> {
             var swiftCodes = swiftCodesService.getSwiftCodesDataByCountryISO2(countryPL.getCountryISO2());
